@@ -1,7 +1,7 @@
 CSCI 4110U - Graphics Project: Brick Olympics
 =============================================
 
-## Created by: Irfaan Ali & Christian Soosaipillai
+## Created by: Christian Soosaipillai & Irfaan Ali
 
 ### How to build in Windows Using Visual Studio Command Prompt
 
