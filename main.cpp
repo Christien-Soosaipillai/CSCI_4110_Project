@@ -345,8 +345,8 @@ static void render(void) {
       // model matrix: translate, scale, and rotate the model
       model = glm::mat4(1.0f);
       // model = glm::mat4_cast(rotation);
-      model = glm::translate(model, glm::vec3(0.0f, -10.0f, 0.0f));    
-      model = glm::scale(model, glm::vec3(50.0f, 0.01f, 500.0f));
+      model = glm::translate(model, glm::vec3(0.0f, -10.0f, -190.0f));
+      model = glm::scale(model, glm::vec3(50.0f, 0.01f, 600.0f));
 
       // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
 
