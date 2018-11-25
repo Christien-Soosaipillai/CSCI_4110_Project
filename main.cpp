@@ -29,7 +29,7 @@ int width = 1024;
 int height = 768;
 
 unsigned int skyboxTexture;
-unsigned int allTextures[2];
+unsigned int allTextures[3];
 unsigned int numVertices;
 
 GLuint programId;
@@ -334,6 +334,75 @@ static void render(void) {
       glDisableVertexAttribArray(normalAttribId);
     }
 
+
+
+    // draw the track
+    {
+      // activate our shader program
+      glUseProgram(programId);
+
+      // model matrix: translate, scale, and rotate the model
+      model = glm::mat4(1.0f);
+      // model = glm::mat4_cast(rotation);
+      model = glm::translate(model, glm::vec3(0.0f, -10.0f, 0.0f));    
+      model = glm::scale(model, glm::vec3(50.0f, 0.01f, 500.0f));
+
+      // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
+
+      // model-view-projection matrix
+      glm::mat4 mvp = projection * view * model;
+      GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
+      glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
+
+      // model matrix
+      GLuint mMatrixId = glGetUniformLocation(programId, "u_ModelMatrix");
+      glUniformMatrix4fv(mMatrixId, 1, GL_FALSE, &model[0][0]);
+
+      GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
+      glActiveTexture(GL_TEXTURE0);  // texture unit 0
+      glBindTexture(GL_TEXTURE_2D, allTextures[2]);
+      glUniform1i(textureId, 0);
+
+      // the colour of our object
+      glm::vec4 color = glm::vec4(0.3f, 0.1f, 0.1f, 1.0f); 
+      GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
+      glUniform4fv(diffuseColourId, 1, &color[0]);
+
+      // the shininess of the object's surface
+      GLuint shininessId = glGetUniformLocation(programId, "u_Shininess");
+      glUniform1f(shininessId, 2);
+
+      // find the names (ids) of each vertex attribute
+      GLint positionAttribId = glGetAttribLocation(programId, "position");
+      GLint textureCoordsAttribId = glGetAttribLocation(programId, "textureCoords");
+      GLint normalAttribId = glGetAttribLocation(programId, "normal");
+
+      // provide the vertex positions to the shaders
+      glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
+      glEnableVertexAttribArray(positionAttribId);
+      glVertexAttribPointer(positionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+      // provide the vertex texture coordinates to the shaders
+      glBindBuffer(GL_ARRAY_BUFFER, textureCoords_vbo);
+      glEnableVertexAttribArray(textureCoordsAttribId);
+      glVertexAttribPointer(textureCoordsAttribId, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+      // provide the vertex normals to the shaders
+      glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
+      glEnableVertexAttribArray(normalAttribId);
+      glVertexAttribPointer(normalAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+      // draw the triangles
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+      glDrawElements(GL_TRIANGLES, numVertices, GL_UNSIGNED_INT, (void*)0);
+
+      // disable the attribute arrays
+      glDisableVertexAttribArray(positionAttribId);
+      glDisableVertexAttribArray(textureCoordsAttribId);
+      glDisableVertexAttribArray(normalAttribId);
+    }
+
+
     //christian render function start
       if(count == 7175){
         glutDestroyWindow(windowId);
@@ -442,6 +511,7 @@ int main(int argc, char** argv) {
   createGeometry();
   allTextures[0] = createTexture("textures/grass.jpg");
   allTextures[1] = createTexture("textures/checkered.jpg");
+  allTextures[2] = createTexture("textures/track.jpg");
 
   // load the GLSL shader programs
   ShaderProgram program;
