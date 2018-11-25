@@ -47,6 +47,7 @@ GLuint skybox_vbo = 0;
 
 //camera initial position
 glm::vec3 eyePosition = glm::vec3(0.0f, 50.0f, 150.0f);
+glm::vec3 centerPoint = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::mat4 view;
 glm::mat4 projection;
 float aspectRatio;
@@ -207,10 +208,10 @@ static void render(void) {
     // view and perspective
     // view matrix - orient everything around our preferred view
     view = glm::lookAt( eyePosition,
-                        glm::vec3(0,0,0),    // where to look
+                        centerPoint,    // where to look
                         glm::vec3(0,1,0)     // up
     );
-    view = glm::rotate(view, glm::radians(angle), glm::vec3(0, 1, 0));
+    // view = glm::rotate(view, glm::radians(90.0f), glm::vec3(0, 1, 0));
     aspectRatio = (float)width / (float)height;
     projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 1000.0f);
 
@@ -266,7 +267,7 @@ static void render(void) {
       model = glm::mat4(1.0f);
       // model = glm::mat4_cast(rotation);
       model = glm::translate(model, glm::vec3(0.0f, -12.0f, 0.0f));    
-      model = glm::scale(model, glm::vec3(100.0f, 0.01f, 100.0f));
+      model = glm::scale(model, glm::vec3(1000.0f, 0.01f, 1000.0f));
 
       // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
 
@@ -438,20 +439,6 @@ static void mouse(int button, int state, int x, int y) {
 }
 
 static void keyboard(unsigned char key, int x, int y) {
-   // switch (key) {
-   // case 'l':
-   //    animateLight = !animateLight;
-   //    break;
-   // case 'r':
-   //    rotateObject = !rotateObject;
-   //    break;
-   // case 's':
-   //    animateShaders = !animateShaders;
-   //    break;
-   // case 'b':
-   //    animateSkyboxes = !animateSkyboxes;
-   //    break;
-   // }
   //christian keyboard function
     if (key == 'r') {
       if (yRotationSpeed > 0.0) {
@@ -464,6 +451,8 @@ static void keyboard(unsigned char key, int x, int y) {
     }
     else if(key == 'g'){
     	run+=2;
+      eyePosition += glm::vec3(0.0f, 0.0f, -2.0f);
+      centerPoint += glm::vec3(0.0f, 0.0f, -2.0f);
 
 
     }
