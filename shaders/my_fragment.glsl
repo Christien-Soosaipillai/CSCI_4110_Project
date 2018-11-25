@@ -38,14 +38,14 @@ void main() {
 	diffuse += max(0.0f, dot(N, L));
 
 	//all color components
-    gl_FragColor = (u_DiffuseColour*(ambient+diffuse+specular))*vec4(baseColour, 1.0);
+    gl_FragColor = (u_DiffuseColour*(ambient+diffuse+specular)) * vec4(baseColour, 1.0);
 
     //only diff color
     //gl_FragColor = (u_DiffuseColour*(ambient+diffuse+specular));
 
     //only texture color
     //gl_FragColor = ((ambient+diffuse+specular))*vec4(baseColour, 1.0);
-    
+
     //normals
 	//gl_FragColor = vec4(N, 1.0);
 }

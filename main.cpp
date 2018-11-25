@@ -1,95 +1,89 @@
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <cmath>
-#include <GL/glew.h>
-#ifdef __APPLE__
-#  include <GLUT/glut.h>
-#else
-#  include <GL/glut.h>
-#endif
+//imports and includes
+  #include <string>
+  #include <iostream>
+  #include <fstream>
+  #include <cmath>
+  #include <GL/glew.h>
+  #ifdef __APPLE__
+  #  include <GLUT/glut.h>
+  #else
+  #  include <GL/glut.h>
+  #endif
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/quaternion.hpp>
+  #define GLM_ENABLE_EXPERIMENTAL
+  #include <glm/glm.hpp>
+  #include <glm/gtc/matrix_transform.hpp>
+  #include <glm/gtx/transform.hpp>
+  #include <glm/gtc/quaternion.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "apis/stb_image.h"
+  #define STB_IMAGE_IMPLEMENTATION
+  #include "apis/stb_image.h"
 
-#include "ShaderProgram.h"
-#include "ObjMesh.h"
+  #include "ShaderProgram.h"
+  #include "ObjMesh.h"
 
-//person class
-#include "Person.h"
+  //person class
+  #include "Person.h"
 
+  //end of includes
 
-int width = 1024;
-int height = 768;
+//variables
+  unsigned int skyboxTexture;
+  unsigned int allTextures[4];
+  unsigned int numVertices;
 
-unsigned int skyboxTexture;
-unsigned int allTextures[3];
-unsigned int numVertices;
+  GLuint programId;
+  GLuint skyboxProgramId;
 
-GLuint programId;
-GLuint skyboxProgramId;
+  //buffers
+  GLuint vertexBuffer;
+  GLuint indexBuffer;
+  GLenum positionBufferId;
+  GLuint positions_vbo = 0;
+  GLuint textureCoords_vbo = 0;
+  GLuint normals_vbo = 0;
+  GLuint colours_vbo = 0;
+  GLuint skybox_vbo = 0;
 
-//buffers
-GLuint vertexBuffer;
-GLuint indexBuffer;
-GLenum positionBufferId;
-GLuint positions_vbo = 0;
-GLuint textureCoords_vbo = 0;
-GLuint normals_vbo = 0;
-GLuint colours_vbo = 0;
-GLuint skybox_vbo = 0;
+  //initial view/camera/projection
+  glm::vec3 eyePosition = glm::vec3(0.0f, 50.0f, 150.0f);
+  glm::vec3 centerPoint = glm::vec3(0.0f, 0.0f, 0.0f);
+  glm::mat4 view;
+  glm::mat4 projection;
+  float aspectRatio;
 
-//camera initial position
-glm::vec3 eyePosition = glm::vec3(0.0f, 50.0f, 150.0f);
-glm::vec3 centerPoint = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::mat4 view;
-glm::mat4 projection;
-float aspectRatio;
+  //for testing camera rotation
+  float angle = 0.0f;
+  bool rotateObject = true;
 
-//for camera rotation
-float angle = 0.0f;
-bool rotateObject = true;
+  //other variables
+  int width = 1024;
+  int height = 768;
+  bool isFinished = false;
 
+  //Christian Variables/Functions
+    //drawCube and animation
+    float yRotation = -85.0f;
+    float yRotationSpeed = 0.1f;
+    float time = 0.0f;
+    bool isAnimating = true;
+    int frame_delay = 500;
+    int keyFrame = 1;
+    int lastFrameMillis = 0;
+    glm::mat4 torso;
+    int count = 1;
+    float t;
+    int windowId = 0;
+    int run1;
+    int run2;
 
-// backup of view and perspective
-// view matrix - orient everything around our preferred view
-// view = glm::lookAt( eyePosition,
-//               glm::vec3(0,0,0),    // where to look
-//               glm::vec3(0,1,0)     // up
-// );
-// view = glm::rotate(view, glm::radians(angle), glm::vec3(0, 1, 0));
-// aspectRatio = (float)width / (float)height;
-// projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 1000.0f);
-
-
-//Christian Variables
-//drawCube and animation
-  float yRotation = -85.0f;
-  float yRotationSpeed = 0.1f;
-  float time = 0.0f;
-  bool isAnimating = true;
-  int frame_delay = 500;
-  int keyFrame = 1;
-  int lastFrameMillis = 0;
-  glm::mat4 torso;
-  int count = 1;
-  float t;
-  int windowId = 0;
-  int run1;
-  int run2;
-
+//functions
   //Forward Declare Functions
-  void drawCube(glm::mat4 model);
+  void drawCube(glm::mat4 model, glm::vec4 color);
 
-// static void createTexture(std::string filename);
-static unsigned int createTexture(std::string filename);
-static unsigned int createCubemap(std::vector<std::string> filenames);
+  // static void createTexture(std::string filename);
+  static unsigned int createTexture(std::string filename);
+  static unsigned int createCubemap(std::vector<std::string> filenames);
 
 static void createSkybox(void) {
   float skyboxPositions[] = {
@@ -172,334 +166,334 @@ static void createGeometry(void) {
 }
 
 static void update(void) {
-   int milliseconds = glutGet(GLUT_ELAPSED_TIME);
-   //christian update function
-   time = ((float)milliseconds / 500.0f) * (isAnimating ? 1.0f : 0.0f) * 5;
- 
-   // we'll rotate our model by an ever-increasing angle so that we can see the texture
-   // rotate the entire model, to that we can examine it
-   yRotation += yRotationSpeed;
-
-   // update the bones
-   if (isAnimating && ((milliseconds - lastFrameMillis) > frame_delay)) {
-     lastFrameMillis = milliseconds;
-     keyFrame++;
-
-     if (keyFrame > 7) {
-       keyFrame = 0;
-     }
-   }
-  //end of his update function
-
-   // rotate the shape about the y-axis so that we can see the shading
-   if (rotateObject) {
+  int milliseconds = glutGet(GLUT_ELAPSED_TIME);
+  //if(!isFinished){
+    //christian update function
+      time = ((float)milliseconds / 500.0f) * (isAnimating ? 1.0f : 0.0f) * 5;
+    
+      // we'll rotate our model by an ever-increasing angle so that we can see the texture
+      // rotate the entire model, to that we can examine it
+      yRotation += yRotationSpeed;
+    
+      // update the bones
+      if (isAnimating && ((milliseconds - lastFrameMillis) > frame_delay)) {
+       lastFrameMillis = milliseconds;
+       keyFrame++;
+    
+       if (keyFrame > 7) {
+         keyFrame = 0;
+        }
+      }
+      //end of christian update function
+  
+    // rotate the shape about the y-axis so that we can see the shading
+    if (rotateObject) {
       float degrees = (float)milliseconds / 80.0f;
       angle = degrees;
-   }
+    }
+  //}
 
-   glutPostRedisplay();
+  glutPostRedisplay();
 }
 
 glm::mat4 model;
 
 static void render(void) {
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  // view and perspective
+  // view matrix - orient everything around our preferred view
+  view = glm::lookAt( eyePosition,
+                      centerPoint,    // where to look
+                      glm::vec3(0,1,0)     // up
+                    );
+  // view = glm::rotate(view, glm::radians(90.0f), glm::vec3(0, 1, 0));
+  aspectRatio = (float)width / (float)height;
+  projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 1000.0f);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // draw the cube map sky box
+  {
+    // provide the vertex positions to the shaders
+    GLint skyboxPositionAttribId = glGetAttribLocation(skyboxProgramId, "position");
+    glBindBuffer(GL_ARRAY_BUFFER, skybox_vbo);
+    glEnableVertexAttribArray(skyboxPositionAttribId);
+    glVertexAttribPointer(skyboxPositionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    // texture sampler - a reference to the texture we've previously created
+    GLuint skyboxTextureId  = glGetUniformLocation(skyboxProgramId, "u_TextureSampler");
+    glActiveTexture(GL_TEXTURE0);  // texture unit 0
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+    glUniform1i(skyboxTextureId, 0);
+
+    glUseProgram(skyboxProgramId);
+
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+    glFrontFace(GL_CCW);
+    glDisable(GL_CULL_FACE);
+
+    // set model-view matrix
+
+    GLuint skyboxMVMatrixId = glGetUniformLocation(skyboxProgramId, "u_MVMatrix");
+    glUniformMatrix4fv(skyboxMVMatrixId, 1, GL_FALSE, &view[0][0]);
+
+    // set projection matrix
+    GLuint skyboxProjMatrixId = glGetUniformLocation(skyboxProgramId, "u_PMatrix");
+    glUniformMatrix4fv(skyboxProjMatrixId, 1, GL_FALSE, &projection[0][0]);
+
+    glBindVertexArray(skyboxPositionAttribId);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    // disable the attribute array
+    glDisableVertexAttribArray(skyboxPositionAttribId);
+  }
+
+  // draw the floor
+  {
+    // activate our shader program
+    glUseProgram(programId);
+
+    // turn on depth buffering
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+
+    // model matrix: translate, scale, and rotate the model
+    model = glm::mat4(1.0f);
+    // model = glm::mat4_cast(rotation);
+    model = glm::translate(model, glm::vec3(0.0f, -12.0f, 0.0f));    
+    model = glm::scale(model, glm::vec3(1000.0f, 0.01f, 1000.0f));
+
+    // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
+
+    // model-view-projection matrix
+    glm::mat4 mvp = projection * view * model;
+    GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
+    glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
+
+    // model matrix
+    GLuint mMatrixId = glGetUniformLocation(programId, "u_ModelMatrix");
+    glUniformMatrix4fv(mMatrixId, 1, GL_FALSE, &model[0][0]);
+
+    GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
+    glActiveTexture(GL_TEXTURE0);  // texture unit 0
+    glBindTexture(GL_TEXTURE_2D, allTextures[0]);
+    glUniform1i(textureId, 0);
+
+    // the position of our camera/eye
+    GLuint eyePosId = glGetUniformLocation(programId, "u_EyePosition");
+    glUniform3f(eyePosId, eyePosition.x, eyePosition.y, eyePosition.z);
     
-    // view and perspective
-    // view matrix - orient everything around our preferred view
-    view = glm::lookAt( eyePosition,
-                        centerPoint,    // where to look
-                        glm::vec3(0,1,0)     // up
-    );
-    // view = glm::rotate(view, glm::radians(90.0f), glm::vec3(0, 1, 0));
-    aspectRatio = (float)width / (float)height;
-    projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 1000.0f);
+    //light position. point to the right
+    glm::vec3 lightPosDir = glm::vec3(0.0f, 50.0f, 150.0f);
+    // the position of our light
+    GLuint lightPosId = glGetUniformLocation(programId, "u_LightPos");
+    // glUniform3f(lightPosId, 10, 8, -2);
+    glUniform3fv(lightPosId, 1, &lightPosDir[0]);
 
-    // draw the cube map sky box
-    {
-      // provide the vertex positions to the shaders
-      GLint skyboxPositionAttribId = glGetAttribLocation(skyboxProgramId, "position");
-      glBindBuffer(GL_ARRAY_BUFFER, skybox_vbo);
-      glEnableVertexAttribArray(skyboxPositionAttribId);
-      glVertexAttribPointer(skyboxPositionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    // the colour of our object
+    glm::vec4 color = glm::vec4(0.1f, 0.3f, 0.1f, 1.0f); 
+    GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
+    glUniform4fv(diffuseColourId, 1, &color[0]);
 
-      // texture sampler - a reference to the texture we've previously created
-      GLuint skyboxTextureId  = glGetUniformLocation(skyboxProgramId, "u_TextureSampler");
-      glActiveTexture(GL_TEXTURE0);  // texture unit 0
-      glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-      glUniform1i(skyboxTextureId, 0);
+    // the shininess of the object's surface
+    GLuint shininessId = glGetUniformLocation(programId, "u_Shininess");
+    glUniform1f(shininessId, 3);
 
-      glUseProgram(skyboxProgramId);
+    // find the names (ids) of each vertex attribute
+    GLint positionAttribId = glGetAttribLocation(programId, "position");
+    GLint textureCoordsAttribId = glGetAttribLocation(programId, "textureCoords");
+    GLint normalAttribId = glGetAttribLocation(programId, "normal");
 
-      glDepthMask(GL_FALSE);
-      glDisable(GL_DEPTH_TEST);
-      glFrontFace(GL_CCW);
-      glDisable(GL_CULL_FACE);
+    // provide the vertex positions to the shaders
+    glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
+    glEnableVertexAttribArray(positionAttribId);
+    glVertexAttribPointer(positionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-      // set model-view matrix
+    // provide the vertex texture coordinates to the shaders
+    glBindBuffer(GL_ARRAY_BUFFER, textureCoords_vbo);
+    glEnableVertexAttribArray(textureCoordsAttribId);
+    glVertexAttribPointer(textureCoordsAttribId, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-      GLuint skyboxMVMatrixId = glGetUniformLocation(skyboxProgramId, "u_MVMatrix");
-      glUniformMatrix4fv(skyboxMVMatrixId, 1, GL_FALSE, &view[0][0]);
+    // provide the vertex normals to the shaders
+    glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
+    glEnableVertexAttribArray(normalAttribId);
+    glVertexAttribPointer(normalAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-      // set projection matrix
-      GLuint skyboxProjMatrixId = glGetUniformLocation(skyboxProgramId, "u_PMatrix");
-      glUniformMatrix4fv(skyboxProjMatrixId, 1, GL_FALSE, &projection[0][0]);
+    // draw the triangles
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glDrawElements(GL_TRIANGLES, numVertices, GL_UNSIGNED_INT, (void*)0);
 
-      glBindVertexArray(skyboxPositionAttribId);
-      glDrawArrays(GL_TRIANGLES, 0, 36);
+    // disable the attribute arrays
+    glDisableVertexAttribArray(positionAttribId);
+    glDisableVertexAttribArray(textureCoordsAttribId);
+    glDisableVertexAttribArray(normalAttribId);
+  }
 
-      // disable the attribute array
-      glDisableVertexAttribArray(skyboxPositionAttribId);
-    }
+  // draw the track
+  {
+    // activate our shader program
+    glUseProgram(programId);
 
+    // model matrix: translate, scale, and rotate the model
+    model = glm::mat4(1.0f);
+    // model = glm::mat4_cast(rotation);
+    model = glm::translate(model, glm::vec3(0.0f, -10.0f, -190.0f));
+    model = glm::scale(model, glm::vec3(50.0f, 0.01f, 600.0f));
 
+    // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
 
-    // draw the floor
-    {
-      // activate our shader program
-      glUseProgram(programId);
+    // model-view-projection matrix
+    glm::mat4 mvp = projection * view * model;
+    GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
+    glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
 
-      // turn on depth buffering
-      glDepthMask(GL_TRUE);
-      glEnable(GL_DEPTH_TEST);
+    // model matrix
+    GLuint mMatrixId = glGetUniformLocation(programId, "u_ModelMatrix");
+    glUniformMatrix4fv(mMatrixId, 1, GL_FALSE, &model[0][0]);
 
-      // model matrix: translate, scale, and rotate the model
-      model = glm::mat4(1.0f);
-      // model = glm::mat4_cast(rotation);
-      model = glm::translate(model, glm::vec3(0.0f, -12.0f, 0.0f));    
-      model = glm::scale(model, glm::vec3(1000.0f, 0.01f, 1000.0f));
+    GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
+    glActiveTexture(GL_TEXTURE0);  // texture unit 0
+    glBindTexture(GL_TEXTURE_2D, allTextures[2]);
+    glUniform1i(textureId, 0);
 
-      // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
+    // the colour of our object
+    glm::vec4 color = glm::vec4(0.3f, 0.1f, 0.1f, 1.0f); 
+    GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
+    glUniform4fv(diffuseColourId, 1, &color[0]);
 
-      // model-view-projection matrix
-      glm::mat4 mvp = projection * view * model;
-      GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
-      glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
+    // the shininess of the object's surface
+    GLuint shininessId = glGetUniformLocation(programId, "u_Shininess");
+    glUniform1f(shininessId, 2);
 
-      // model matrix
-      GLuint mMatrixId = glGetUniformLocation(programId, "u_ModelMatrix");
-      glUniformMatrix4fv(mMatrixId, 1, GL_FALSE, &model[0][0]);
+    // find the names (ids) of each vertex attribute
+    GLint positionAttribId = glGetAttribLocation(programId, "position");
+    GLint textureCoordsAttribId = glGetAttribLocation(programId, "textureCoords");
+    GLint normalAttribId = glGetAttribLocation(programId, "normal");
 
-      GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
-      glActiveTexture(GL_TEXTURE0);  // texture unit 0
-      glBindTexture(GL_TEXTURE_2D, allTextures[0]);
-      glUniform1i(textureId, 0);
+    // provide the vertex positions to the shaders
+    glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
+    glEnableVertexAttribArray(positionAttribId);
+    glVertexAttribPointer(positionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-      // the position of our camera/eye
-      GLuint eyePosId = glGetUniformLocation(programId, "u_EyePosition");
-      glUniform3f(eyePosId, eyePosition.x, eyePosition.y, eyePosition.z);
-      
-      //light position. point to the right
-      glm::vec3 lightPosDir = glm::vec3(0.0f, 50.0f, 150.0f);
-      // the position of our light
-      GLuint lightPosId = glGetUniformLocation(programId, "u_LightPos");
-      // glUniform3f(lightPosId, 10, 8, -2);
-      glUniform3fv(lightPosId, 1, &lightPosDir[0]);
+    // provide the vertex texture coordinates to the shaders
+    glBindBuffer(GL_ARRAY_BUFFER, textureCoords_vbo);
+    glEnableVertexAttribArray(textureCoordsAttribId);
+    glVertexAttribPointer(textureCoordsAttribId, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-      // the colour of our object
-      glm::vec4 color = glm::vec4(0.1f, 0.3f, 0.1f, 1.0f); 
-      GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
-      glUniform4fv(diffuseColourId, 1, &color[0]);
+    // provide the vertex normals to the shaders
+    glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
+    glEnableVertexAttribArray(normalAttribId);
+    glVertexAttribPointer(normalAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-      // the shininess of the object's surface
-      GLuint shininessId = glGetUniformLocation(programId, "u_Shininess");
-      glUniform1f(shininessId, 3);
+    // draw the triangles
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glDrawElements(GL_TRIANGLES, numVertices, GL_UNSIGNED_INT, (void*)0);
 
-      // find the names (ids) of each vertex attribute
-      GLint positionAttribId = glGetAttribLocation(programId, "position");
-      GLint textureCoordsAttribId = glGetAttribLocation(programId, "textureCoords");
-      GLint normalAttribId = glGetAttribLocation(programId, "normal");
+    // disable the attribute arrays
+    glDisableVertexAttribArray(positionAttribId);
+    glDisableVertexAttribArray(textureCoordsAttribId);
+    glDisableVertexAttribArray(normalAttribId);
+  }
 
-      // provide the vertex positions to the shaders
-      glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
-      glEnableVertexAttribArray(positionAttribId);
-      glVertexAttribPointer(positionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+  // draw the finishline
+  {
+    // activate our shader program
+    glUseProgram(programId);
 
-      // provide the vertex texture coordinates to the shaders
-      glBindBuffer(GL_ARRAY_BUFFER, textureCoords_vbo);
-      glEnableVertexAttribArray(textureCoordsAttribId);
-      glVertexAttribPointer(textureCoordsAttribId, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+    // model matrix: translate, scale, and rotate the model
+    model = glm::mat4(1.0f);
+    // model = glm::mat4_cast(rotation);
+    model = glm::translate(model, glm::vec3(0.0f, -9.5f, -100.0f));
+    model = glm::scale(model, glm::vec3(50.0f, 0.01f, 10.0f));
 
-      // provide the vertex normals to the shaders
-      glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
-      glEnableVertexAttribArray(normalAttribId);
-      glVertexAttribPointer(normalAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
 
-      // draw the triangles
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-      glDrawElements(GL_TRIANGLES, numVertices, GL_UNSIGNED_INT, (void*)0);
+    // model-view-projection matrix
+    glm::mat4 mvp = projection * view * model;
+    GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
+    glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
 
-      // disable the attribute arrays
-      glDisableVertexAttribArray(positionAttribId);
-      glDisableVertexAttribArray(textureCoordsAttribId);
-      glDisableVertexAttribArray(normalAttribId);
-    }
+    // model matrix
+    GLuint mMatrixId = glGetUniformLocation(programId, "u_ModelMatrix");
+    glUniformMatrix4fv(mMatrixId, 1, GL_FALSE, &model[0][0]);
 
+    GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
+    glActiveTexture(GL_TEXTURE0);  // texture unit 0
+    glBindTexture(GL_TEXTURE_2D, allTextures[2]);
+    glUniform1i(textureId, 0);
 
+    // the colour of our object
+    glm::vec4 color = glm::vec4(0.8f, 1.0f, 0.0f, 1.0f); 
+    GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
+    glUniform4fv(diffuseColourId, 1, &color[0]);
 
-    // draw the track
-    {
-      // activate our shader program
-      glUseProgram(programId);
+    // the shininess of the object's surface
+    GLuint shininessId = glGetUniformLocation(programId, "u_Shininess");
+    glUniform1f(shininessId, 2);
 
-      // model matrix: translate, scale, and rotate the model
-      model = glm::mat4(1.0f);
-      // model = glm::mat4_cast(rotation);
-      model = glm::translate(model, glm::vec3(0.0f, -10.0f, -190.0f));
-      model = glm::scale(model, glm::vec3(50.0f, 0.01f, 600.0f));
+    // find the names (ids) of each vertex attribute
+    GLint positionAttribId = glGetAttribLocation(programId, "position");
+    GLint textureCoordsAttribId = glGetAttribLocation(programId, "textureCoords");
+    GLint normalAttribId = glGetAttribLocation(programId, "normal");
 
-      // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
+    // provide the vertex positions to the shaders
+    glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
+    glEnableVertexAttribArray(positionAttribId);
+    glVertexAttribPointer(positionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-      // model-view-projection matrix
-      glm::mat4 mvp = projection * view * model;
-      GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
-      glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
+    // provide the vertex texture coordinates to the shaders
+    glBindBuffer(GL_ARRAY_BUFFER, textureCoords_vbo);
+    glEnableVertexAttribArray(textureCoordsAttribId);
+    glVertexAttribPointer(textureCoordsAttribId, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-      // model matrix
-      GLuint mMatrixId = glGetUniformLocation(programId, "u_ModelMatrix");
-      glUniformMatrix4fv(mMatrixId, 1, GL_FALSE, &model[0][0]);
+    // provide the vertex normals to the shaders
+    glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
+    glEnableVertexAttribArray(normalAttribId);
+    glVertexAttribPointer(normalAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-      GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
-      glActiveTexture(GL_TEXTURE0);  // texture unit 0
-      glBindTexture(GL_TEXTURE_2D, allTextures[2]);
-      glUniform1i(textureId, 0);
+    // draw the triangles
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glDrawElements(GL_TRIANGLES, numVertices, GL_UNSIGNED_INT, (void*)0);
 
-      // the colour of our object
-      glm::vec4 color = glm::vec4(0.3f, 0.1f, 0.1f, 1.0f); 
-      GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
-      glUniform4fv(diffuseColourId, 1, &color[0]);
+    // disable the attribute arrays
+    glDisableVertexAttribArray(positionAttribId);
+    glDisableVertexAttribArray(textureCoordsAttribId);
+    glDisableVertexAttribArray(normalAttribId);
+  }
 
-      // the shininess of the object's surface
-      GLuint shininessId = glGetUniformLocation(programId, "u_Shininess");
-      glUniform1f(shininessId, 2);
-
-      // find the names (ids) of each vertex attribute
-      GLint positionAttribId = glGetAttribLocation(programId, "position");
-      GLint textureCoordsAttribId = glGetAttribLocation(programId, "textureCoords");
-      GLint normalAttribId = glGetAttribLocation(programId, "normal");
-
-      // provide the vertex positions to the shaders
-      glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
-      glEnableVertexAttribArray(positionAttribId);
-      glVertexAttribPointer(positionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-      // provide the vertex texture coordinates to the shaders
-      glBindBuffer(GL_ARRAY_BUFFER, textureCoords_vbo);
-      glEnableVertexAttribArray(textureCoordsAttribId);
-      glVertexAttribPointer(textureCoordsAttribId, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-      // provide the vertex normals to the shaders
-      glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
-      glEnableVertexAttribArray(normalAttribId);
-      glVertexAttribPointer(normalAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-      // draw the triangles
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-      glDrawElements(GL_TRIANGLES, numVertices, GL_UNSIGNED_INT, (void*)0);
-
-      // disable the attribute arrays
-      glDisableVertexAttribArray(positionAttribId);
-      glDisableVertexAttribArray(textureCoordsAttribId);
-      glDisableVertexAttribArray(normalAttribId);
-    }
-
-    // draw the finishline
-    {
-      // activate our shader program
-      glUseProgram(programId);
-
-      // model matrix: translate, scale, and rotate the model
-      model = glm::mat4(1.0f);
-      // model = glm::mat4_cast(rotation);
-      model = glm::translate(model, glm::vec3(0.0f, -9.5f, -100.0f));
-      model = glm::scale(model, glm::vec3(50.0f, 0.01f, 10.0f));
-
-      // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
-
-      // model-view-projection matrix
-      glm::mat4 mvp = projection * view * model;
-      GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
-      glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
-
-      // model matrix
-      GLuint mMatrixId = glGetUniformLocation(programId, "u_ModelMatrix");
-      glUniformMatrix4fv(mMatrixId, 1, GL_FALSE, &model[0][0]);
-
-      GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
-      glActiveTexture(GL_TEXTURE0);  // texture unit 0
-      glBindTexture(GL_TEXTURE_2D, allTextures[2]);
-      glUniform1i(textureId, 0);
-
-      // the colour of our object
-      glm::vec4 color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f); 
-      GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
-      glUniform4fv(diffuseColourId, 1, &color[0]);
-
-      // the shininess of the object's surface
-      GLuint shininessId = glGetUniformLocation(programId, "u_Shininess");
-      glUniform1f(shininessId, 2);
-
-      // find the names (ids) of each vertex attribute
-      GLint positionAttribId = glGetAttribLocation(programId, "position");
-      GLint textureCoordsAttribId = glGetAttribLocation(programId, "textureCoords");
-      GLint normalAttribId = glGetAttribLocation(programId, "normal");
-
-      // provide the vertex positions to the shaders
-      glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
-      glEnableVertexAttribArray(positionAttribId);
-      glVertexAttribPointer(positionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-      // provide the vertex texture coordinates to the shaders
-      glBindBuffer(GL_ARRAY_BUFFER, textureCoords_vbo);
-      glEnableVertexAttribArray(textureCoordsAttribId);
-      glVertexAttribPointer(textureCoordsAttribId, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-      // provide the vertex normals to the shaders
-      glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
-      glEnableVertexAttribArray(normalAttribId);
-      glVertexAttribPointer(normalAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-      // draw the triangles
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-      glDrawElements(GL_TRIANGLES, numVertices, GL_UNSIGNED_INT, (void*)0);
-
-      // disable the attribute arrays
-      glDisableVertexAttribArray(positionAttribId);
-      glDisableVertexAttribArray(textureCoordsAttribId);
-      glDisableVertexAttribArray(normalAttribId);
-    }
-
-
-    //christian render function start
-      t += 1.0f/7175.0f;
-      //std::cout << t << std::endl; 
-    
+  //christian render function start
+    t += 1.0f/7175.0f;
+    //std::cout << t << std::endl; 
+  
     //Person 1
       Person person1(time,yRotationSpeed, yRotation, t, run1, 8.00);
       std::vector<glm::mat4> vec1 = person1.getBodyVector();
       if (person1.isFinished() == true) {
-        glutDestroyWindow(windowId);
-        exit(0);
+        isFinished = true;
+        // std::cout << "BLUE Player 1 wins!" << std::endl;
+        // glutDestroyWindow(windowId);
+        // exit(0);
       }   
       for (int i = 0; i < vec1.size(); i++) {
-        drawCube(vec1[i]);
+        drawCube(vec1[i], glm::vec4(0.0f,0.0f,0.8f,1.0f));
       }
 
-      //PERSON 2
+    //PERSON 2
       Person person2(time, yRotationSpeed, yRotation, t, run2, -8.00);
       std::vector<glm::mat4> vec2 = person2.getBodyVector();
       if (person2.isFinished() == true) {
-        glutDestroyWindow(windowId);
-        exit(0);
+        isFinished = true;
+        // std::cout << "RED Player 2 wins!" << std::endl;
+        // glutDestroyWindow(windowId);
+        // exit(0);
       }   
       for(int i = 0; i < vec2.size(); i++){
-        drawCube(vec2[i]); 
+        drawCube(vec2[i],  glm::vec4(0.8f,0.0f,0.0f,1.0f)); 
       }
       //christian render function end
-    
-    // make the draw buffer to display buffer (i.e. display what we have drawn)
-    glutSwapBuffers();
+  
+  // make the draw buffer to display buffer (i.e. display what we have drawn)
+  glutSwapBuffers();
 }
 
 static void reshape(int w, int h) {
@@ -516,16 +510,20 @@ static void mouse(int button, int state, int x, int y) {
 }
 
 static void keyboard(unsigned char key, int x, int y) {
-
-  if(key == 'q'){
-    run1+=2;
-    std::cout << "Player 1 steps: " << run1 / 2 << std::endl;
-  }
-  if (key == 'p') {
-    run2 += 2;
-    std::cout << "Player 2 steps: " << run2 / 2 << std::endl;
-  }
+  if(!isFinished){
+    if(key == 'p'){
+      run1+=2;
+      std::cout << "Player 1 steps: " << run1 / 2 << std::endl;
+    }
+    if(key == 'q'){
+      run2 += 2;
+      std::cout << "Player 2 steps: " << run2 / 2 << std::endl;
+    }
+    //update eyeposition and look at poisition to follow players
+    eyePosition += glm::vec3(0.0f, 0.0f, -1.0f);
+    centerPoint += glm::vec3(0.0f, 0.0f, -1.0f);
     std::cout << "Key pressed: " << key << std::endl;
+  }
 }
 
 int main(int argc, char** argv) {
@@ -563,10 +561,12 @@ int main(int argc, char** argv) {
   createSkybox();
   createGeometry();
   allTextures[0] = createTexture("textures/grass.jpg");
-  allTextures[1] = createTexture("textures/checkered.jpg");
+  allTextures[1] = createTexture("textures/brickwall.jpg");
   allTextures[2] = createTexture("textures/track.jpg");
+  //texture for testing
+  allTextures[3] = createTexture("textures/checkered.jpg");
 
-  // load the GLSL shader programs
+  //load the GLSL shader programs
   ShaderProgram program;
   program.loadShaders("shaders/my_vertex.glsl", "shaders/my_fragment.glsl");
   programId = program.getProgramId();
@@ -636,12 +636,12 @@ static unsigned int createTexture(std::string filename) {
   glActiveTexture(GL_TEXTURE0);
 
   // we don't need the bitmap data any longer
-  //stbi_image_free(bitmap);
+  stbi_image_free(bitmap);
 
   return textureId;
 }
 
-void drawCube(glm::mat4 model){
+void drawCube(glm::mat4 model, glm::vec4 color){
   // model-view-projection matrix
   glm::mat4 mvp = projection * view * model;
   GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
@@ -654,7 +654,7 @@ void drawCube(glm::mat4 model){
   glUniform1i(textureId, 0);
 
   // the colour of our object
-  glm::vec4 color = glm::vec4(0.8f, 0.2f, 0.2f, 1.0f); 
+  //glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); 
   GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
   glUniform4fv(diffuseColourId, 1, &color[0]);
 
