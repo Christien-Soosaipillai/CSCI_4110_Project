@@ -1,5 +1,6 @@
-#CSCI 4110U - Graphics Project: Brick Olympics
-#Created by: Irfaan Ali & Christian Soosaipillai
+# CSCI 4110U - Graphics Project: Brick Olympics
+
+# Created by: Irfaan Ali & Christian Soosaipillai
 
 ## HOW TO BUILD IN WINDOWS
 
