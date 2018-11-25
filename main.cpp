@@ -123,22 +123,22 @@ float angle = 0.0f;
 
 static void update(void) {
     int milliseconds = glutGet(GLUT_ELAPSED_TIME);
-	time = ((float)milliseconds / 500.0f) * (isAnimating ? 1.0f : 0.0f) * 5;
+  	time = ((float)milliseconds / 500.0f) * (isAnimating ? 1.0f : 0.0f) * 5;
 
-    // we'll rotate our model by an ever-increasing angle so that we can see the texture
-	// rotate the entire model, to that we can examine it
-	yRotation += yRotationSpeed;
+      // we'll rotate our model by an ever-increasing angle so that we can see the texture
+  	// rotate the entire model, to that we can examine it
+  	yRotation += yRotationSpeed;
 
-	// update the bones
-	if (isAnimating && ((milliseconds - lastFrameMillis) > frame_delay)) {
-		lastFrameMillis = milliseconds;
-		keyFrame++;
+  	// update the bones
+  	if (isAnimating && ((milliseconds - lastFrameMillis) > frame_delay)) {
+  		lastFrameMillis = milliseconds;
+  		keyFrame++;
 
-		if (keyFrame > 7) {
-			keyFrame = 0;
-		}
-	}
-    glutPostRedisplay();
+  		if (keyFrame > 7) {
+  			keyFrame = 0;
+  		}
+  	}
+      glutPostRedisplay();
 }
 
 static void render(void) {
@@ -168,7 +168,6 @@ static void render(void) {
 
 	// make the draw buffer to display buffer (i.e. display what we have drawn)
 	glutSwapBuffers();
-
 }
 
 void drawCube(glm::mat4 model){ 
@@ -223,9 +222,7 @@ void drawCube(glm::mat4 model){
 	// disable the attribute arrays
   glDisableVertexAttribArray(positionAttribId);
   glDisableVertexAttribArray(textureCoordsAttribId);
-  glDisableVertexAttribArray(normalAttribId);
-
-	
+  glDisableVertexAttribArray(normalAttribId);	
 }
 
 static void reshape(int w, int h) {
@@ -277,22 +274,21 @@ int main(int argc, char** argv) {
    glutMouseFunc(&mouse);
    glutKeyboardFunc(&keyboard);
 
-   
-
+  
    glewInit();
    if (!GLEW_VERSION_2_0) {
         std::cerr << "OpenGL 2.0 not available" << std::endl;
         return 1;
    }
    std::cout << "Using GLEW " << glewGetString(GLEW_VERSION) << std::endl;
-	std::cout << "Using OpenGL " << glGetString(GL_VERSION) << std::endl;
+	 std::cout << "Using OpenGL " << glGetString(GL_VERSION) << std::endl;
 
    createGeometry();
    createTexture("textures/planks.jpg");
 
    ShaderProgram program;
-  	program.loadShaders("shaders/vertex.glsl", "shaders/fragment.glsl");
-  	programId = program.getProgramId();
+   program.loadShaders("shaders/vertex.glsl", "shaders/fragment.glsl");
+   programId = program.getProgramId();
 
    glutMainLoop();
 
