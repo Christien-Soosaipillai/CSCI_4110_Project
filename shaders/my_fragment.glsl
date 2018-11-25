@@ -10,7 +10,7 @@ varying vec3 v_Normal;
 varying vec2 v_TextureCoords;
 
 void main() {
-	//vec3 baseColour = texture(u_TextureSampler, v_TextureCoords).rgb;
+	vec3 baseColour = texture(u_TextureSampler, v_TextureCoords).rgb;
 	//gl_FragColor = vec4(baseColour, 1.0);
 
 
@@ -28,7 +28,7 @@ void main() {
 	L = normalize(u_LightPos - v_Position);
 
 	//directional light
-	//L = normalize(-u_LightPos.xyz);
+	//L = normalize(-u_LightPos);
 	
 	//blinn-phong
 	vec3 H = normalize(L+V);
@@ -37,6 +37,15 @@ void main() {
 	
 	diffuse += max(0.0f, dot(N, L));
 
-    gl_FragColor = u_DiffuseColour*(ambient+diffuse+specular);
+	//all color components
+    gl_FragColor = (u_DiffuseColour*(ambient+diffuse+specular))*vec4(baseColour, 1.0);
+
+    //only diff color
+    //gl_FragColor = (u_DiffuseColour*(ambient+diffuse+specular));
+
+    //only texture color
+    //gl_FragColor = ((ambient+diffuse+specular))*vec4(baseColour, 1.0);
+    
+    //normals
 	//gl_FragColor = vec4(N, 1.0);
 }

@@ -210,7 +210,7 @@ static void render(void) {
                         glm::vec3(0,0,0),    // where to look
                         glm::vec3(0,1,0)     // up
     );
-    // view = glm::rotate(view, glm::radians(angle), glm::vec3(0, 1, 0));
+    view = glm::rotate(view, glm::radians(angle), glm::vec3(0, 1, 0));
     aspectRatio = (float)width / (float)height;
     projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 1000.0f);
 
@@ -289,15 +289,14 @@ static void render(void) {
       glUniform3f(eyePosId, eyePosition.x, eyePosition.y, eyePosition.z);
       
       //light position. point to the right
-      glm::vec3 lightPosDir = glm::vec3(1.0f, 0.0f, 0.0f); 
+      glm::vec3 lightPosDir = glm::vec3(0.0f, 50.0f, 150.0f);
       // the position of our light
       GLuint lightPosId = glGetUniformLocation(programId, "u_LightPos");
       // glUniform3f(lightPosId, 10, 8, -2);
       glUniform3fv(lightPosId, 1, &lightPosDir[0]);
 
-      
       // the colour of our object
-      glm::vec4 color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f); 
+      glm::vec4 color = glm::vec4(0.1f, 0.3f, 0.1f, 1.0f); 
       GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
       glUniform4fv(diffuseColourId, 1, &color[0]);
 
@@ -530,6 +529,11 @@ void drawCube(glm::mat4 model){
   glActiveTexture(GL_TEXTURE0);  // texture unit 0
   glBindTexture(GL_TEXTURE_2D, allTextures[1]);
   glUniform1i(textureId, 0);
+
+  // the colour of our object
+  glm::vec4 color = glm::vec4(0.8f, 0.2f, 0.2f, 1.0f); 
+  GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
+  glUniform4fv(diffuseColourId, 1, &color[0]);
 
   // find the names (ids) of each vertex attribute
   GLint positionAttribId = glGetAttribLocation(programId, "position");
