@@ -1,10 +1,9 @@
-# CSCI 4110U - Graphics Project: Brick Olympics
+CSCI 4110U - Graphics Project: Brick Olympics
+=============================================
 
-# Created by: Irfaan Ali & Christian Soosaipillai
+## Created by: Irfaan Ali & Christian Soosaipillai
 
-## HOW TO BUILD IN WINDOWS
-
-### Using Visual Studio Command Prompt
+### How to build in Windows Using Visual Studio Command Prompt
 
 - GLEW and GLUT are included in the 'include' and 'lib' subfolders
 
