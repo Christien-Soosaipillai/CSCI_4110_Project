@@ -404,15 +404,15 @@ static void render(void) {
 
 
     //christian render function start
-      if(count == 7175){
-        glutDestroyWindow(windowId);
-        exit(0);
-      }
       t += 1.0f/7175.0f;
       //std::cout << t << std::endl; 
 
       Person person(time,yRotationSpeed, yRotation, t, run);
       std::vector<glm::mat4> vec = person.getBodyVector();
+	  if (person.isFinished() == true) {
+		  glutDestroyWindow(windowId);
+		  exit(0);
+	  }
       count+=1;
 
       for(int i = 0; i < vec.size(); i++){

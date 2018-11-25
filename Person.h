@@ -19,14 +19,14 @@
 
 #pragma once
 
-class Person{
+class Person {
 private:
 
-	
+
 	//std::vector<glm::mat4> body;	
 
 public:
-	
+
 	Person(float thisTime, float rotSpeed, float yRot, float count, float step);
 	float time;
 	float yRotationSpeed;
@@ -35,7 +35,8 @@ public:
 	float runStep;
 	//return vector of mat4 for each body part
 	std::vector<glm::mat4> getBodyVector();
-	
+	bool isFinished();
+
 
 };
 
