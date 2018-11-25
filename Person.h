@@ -5,7 +5,6 @@
 #include <cmath>
 #include <vector>
 #include <GL/glew.h>
-#include "Part.h"
 #ifdef __APPLE__
 #  include <GLUT/glut.h>
 #else
@@ -28,11 +27,12 @@ private:
 
 public:
 	
-	Person(float thisTime, float rotSpeed, float yRot, float count);
+	Person(float thisTime, float rotSpeed, float yRot, float count, float step);
 	float time;
 	float yRotationSpeed;
 	float yRotation;
 	float t;
+	float runStep;
 	//return vector of mat4 for each body part
 	std::vector<glm::mat4> getBodyVector();
 	

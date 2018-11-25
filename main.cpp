@@ -79,6 +79,7 @@ bool rotateObject = true;
   int count = 1;
   float t;
   int windowId = 0;
+  int run;
 
   //Forward Declare Functions
   void drawCube(glm::mat4 model);
@@ -198,6 +199,7 @@ static void update(void) {
 glm::mat4 model;
 
 static void render(void) {
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     // view and perspective
@@ -246,6 +248,8 @@ static void render(void) {
       // disable the attribute array
       glDisableVertexAttribArray(skyboxPositionAttribId);
     }
+
+
 
     // draw the floor
     {
@@ -337,7 +341,7 @@ static void render(void) {
       t += 1.0f/7175.0f;
       //std::cout << t << std::endl; 
 
-      Person person(time,yRotationSpeed, yRotation, t);
+      Person person(time,yRotationSpeed, yRotation, t, run);
       std::vector<glm::mat4> vec = person.getBodyVector();
       count+=1;
 
@@ -387,6 +391,11 @@ static void keyboard(unsigned char key, int x, int y) {
         yRotationSpeed = 0.1;
       }
       std::cout << "Toggling rotation, speed: " << yRotationSpeed << std::endl;
+    }
+    else if(key == 'g'){
+    	run+=2;
+
+
     }
     else if (key == 'a') {
       isAnimating = !isAnimating;

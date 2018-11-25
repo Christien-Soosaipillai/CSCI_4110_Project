@@ -5,7 +5,6 @@
 #include <cmath>
 #include <vector>
 #include <GL/glew.h>
-#include "Part.h"
 #include "Person.h"
 #ifdef __APPLE__
 #  include <GLUT/glut.h>
@@ -20,11 +19,12 @@
 #include <glm/gtx/transform.hpp>
 
 
-Person::Person(float thisTime, float rotSpeed, float yRot, float count){
+Person::Person(float thisTime, float rotSpeed, float yRot, float count, float step){
   time = thisTime;
   yRotationSpeed = rotSpeed;
   yRotation = yRot;
   t = count;
+  runStep = step;
 
 }
 
@@ -32,9 +32,9 @@ std::vector<glm::mat4> Person::getBodyVector(){
 
 	//bezier control points
   glm::vec3 controlPoint1(00.00f, 0.00f, 0.00f);
-  glm::vec3 controlPoint2(15.00f, 0.00f, 12.00f);
-  glm::vec3 controlPoint3(32.00f, 0.00f, 2.00f);
-  glm::vec3 controlPoint4(44.00f, 0.00f, 15.00f);
+  glm::vec3 controlPoint2(15.00f, 0.00f, 2.00f);
+  glm::vec3 controlPoint3(32.00f, 0.00f, -2.00f);
+  glm::vec3 controlPoint4(44.00f, 0.00f, 2.00f);
 
 
   //matrix for eac heirarchial transformation
@@ -43,9 +43,10 @@ std::vector<glm::mat4> Person::getBodyVector(){
 
   std::cout << t << std::endl;
   //beszier implementation
+  //float x = pow((1 - t), 3) * (controlPoint1.x) + pow((1 - t), 2) * (3 * t) * (controlPoint2.x) + (1 - t) * (3 * (pow(t, 2))) * (controlPoint3.x) + pow(t, 3) * (controlPoint4.x);
   float x = pow((1 - t), 3) * (controlPoint1.x) + pow((1 - t), 2) * (3 * t) * (controlPoint2.x) + (1 - t) * (3 * (pow(t, 2))) * (controlPoint3.x) + pow(t, 3) * (controlPoint4.x);
   float y = pow((1 - t), 3) * (controlPoint1.y) + pow((1 - t), 2) * (3 * t) * (controlPoint2.y) + (1 - t) * (3 * (pow(t, 2))) * (controlPoint3.y) + pow(t, 3) * (controlPoint4.y);
-  float z = pow((1 - t), 3) * (controlPoint1.z) + pow((1 - t), 2) * (3 * t) * (controlPoint2.z) + (1 - t) * (3 * (pow(t, 2))) * (controlPoint3.z) + pow(t, 3) * (controlPoint4.z);
+  float z = -runStep;
 
 
   //stores our body parts
@@ -56,7 +57,7 @@ std::vector<glm::mat4> Person::getBodyVector(){
   glm::vec3 rotationAxis(0, 1, 0);
   
   glm::mat4 model = glm::mat4(1.0f);
-  model = glm::rotate(model, glm::radians(yRotation), glm::vec3(0.0f, 1.0f, 0.0f));
+  model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
   //std::cout << "Coordinates: " << x << "," << y << "," << z << std::endl;  
 
