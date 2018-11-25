@@ -10,11 +10,11 @@ varying vec3 v_Normal;
 varying vec2 v_TextureCoords;
 
 void main() {
-	vec3 baseColour = texture(u_TextureSampler, v_TextureCoords).rgb;
-	gl_FragColor = vec4(baseColour, 1.0);
+	//vec3 baseColour = texture(u_TextureSampler, v_TextureCoords).rgb;
+	//gl_FragColor = vec4(baseColour, 1.0);
 
 
-	/*vec3 N = normalize(v_Normal);
+	vec3 N = normalize(v_Normal);
 	vec3 V = normalize(u_EyePosition - v_Position);
 	
 	//phong/blinn-phong - ASD (Ambient, Specular, Diffuse)
@@ -37,6 +37,6 @@ void main() {
 	
 	diffuse += max(0.0f, dot(N, L));
 
-    gl_FragColor = u_DiffuseColour*(ambient+diffuse+specular);*/
+    gl_FragColor = u_DiffuseColour*(ambient+diffuse+specular);
 	//gl_FragColor = vec4(N, 1.0);
 }

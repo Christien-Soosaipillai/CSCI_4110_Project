@@ -29,6 +29,7 @@ int width = 1024;
 int height = 768;
 
 unsigned int skyboxTexture;
+unsigned int allTextures[2];
 unsigned int numVertices;
 
 GLuint programId;
@@ -84,7 +85,8 @@ bool rotateObject = true;
   //Forward Declare Functions
   void drawCube(glm::mat4 model);
 
-static void createTexture(std::string filename);
+// static void createTexture(std::string filename);
+static unsigned int createTexture(std::string filename);
 static unsigned int createCubemap(std::vector<std::string> filenames);
 
 static void createSkybox(void) {
@@ -279,7 +281,7 @@ static void render(void) {
 
       GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
       glActiveTexture(GL_TEXTURE0);  // texture unit 0
-      glBindTexture(GL_TEXTURE_2D, textureId);
+      glBindTexture(GL_TEXTURE_2D, allTextures[0]);
       glUniform1i(textureId, 0);
 
       // the position of our camera/eye
@@ -295,13 +297,13 @@ static void render(void) {
 
       
       // the colour of our object
-      glm::vec4 color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f); 
+      glm::vec4 color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f); 
       GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
       glUniform4fv(diffuseColourId, 1, &color[0]);
 
       // the shininess of the object's surface
       GLuint shininessId = glGetUniformLocation(programId, "u_Shininess");
-      glUniform1f(shininessId, 25);
+      glUniform1f(shininessId, 3);
 
       // find the names (ids) of each vertex attribute
       GLint positionAttribId = glGetAttribLocation(programId, "position");
@@ -439,7 +441,8 @@ int main(int argc, char** argv) {
   // create the scene geometry
   createSkybox();
   createGeometry();
-  createTexture("textures/grass.jpg");
+  allTextures[0] = createTexture("textures/grass.jpg");
+  allTextures[1] = createTexture("textures/checkered.jpg");
 
   // load the GLSL shader programs
   ShaderProgram program;
@@ -484,7 +487,7 @@ static unsigned int createCubemap(std::vector<std::string> filenames) {
     return textureID;
 }
 
-static void createTexture(std::string filename) {
+static unsigned int createTexture(std::string filename) {
   int width, height, numChannels;
   unsigned char *bitmap = stbi_load(filename.c_str(), 
                                     &width, 
@@ -511,19 +514,12 @@ static void createTexture(std::string filename) {
   glActiveTexture(GL_TEXTURE0);
 
   // we don't need the bitmap data any longer
-  stbi_image_free(bitmap);
+  //stbi_image_free(bitmap);
+
+  return textureId;
 }
 
 void drawCube(glm::mat4 model){
-  // glm::mat4 view = glm::lookAt(
-  //   glm::vec3(0, 20, 80), // eye/camera location
-  //   glm::vec3(0, 0, 0),    // where to look
-  //   glm::vec3(0, 1, 0)     // up
-  // );
-
-  // float aspectRatio = (float)width / (float)height;
-  // glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 1000.0f);
-
   // model-view-projection matrix
   glm::mat4 mvp = projection * view * model;
   GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
@@ -532,12 +528,12 @@ void drawCube(glm::mat4 model){
   // texture sampler - a reference to the texture we've previously created
   GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
   glActiveTexture(GL_TEXTURE0);  // texture unit 0
-  glBindTexture(GL_TEXTURE_2D, textureId);
+  glBindTexture(GL_TEXTURE_2D, allTextures[1]);
   glUniform1i(textureId, 0);
 
   // find the names (ids) of each vertex attribute
   GLint positionAttribId = glGetAttribLocation(programId, "position");
-  //GLint textureCoordsAttribId = glGetAttribLocation(programId, "textureCoords");
+  GLint textureCoordsAttribId = glGetAttribLocation(programId, "textureCoords");
   GLint normalAttribId = glGetAttribLocation(programId, "normal");
 
   // provide the vertex positions to the shaders
@@ -546,9 +542,9 @@ void drawCube(glm::mat4 model){
   glVertexAttribPointer(positionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   // provide the vertex texture coordinates to the shaders
-  // glBindBuffer(GL_ARRAY_BUFFER, textureCoords_vbo);
-  // glEnableVertexAttribArray(textureCoordsAttribId);
-  // glVertexAttribPointer(textureCoordsAttribId, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+  glBindBuffer(GL_ARRAY_BUFFER, textureCoords_vbo);
+  glEnableVertexAttribArray(textureCoordsAttribId);
+  glVertexAttribPointer(textureCoordsAttribId, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   // provide the vertex normals to the shaders
   glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
@@ -561,6 +557,6 @@ void drawCube(glm::mat4 model){
 
   // disable the attribute arrays
   glDisableVertexAttribArray(positionAttribId);
-  // glDisableVertexAttribArray(textureCoordsAttribId);
+  glDisableVertexAttribArray(textureCoordsAttribId);
   glDisableVertexAttribArray(normalAttribId); 
 }
