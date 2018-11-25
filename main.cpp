@@ -81,7 +81,8 @@ bool rotateObject = true;
   int count = 1;
   float t;
   int windowId = 0;
-  int run;
+  int run1;
+  int run2;
 
   //Forward Declare Functions
   void drawCube(glm::mat4 model);
@@ -473,17 +474,27 @@ static void render(void) {
     //christian render function start
       t += 1.0f/7175.0f;
       //std::cout << t << std::endl; 
+    
+    //Person 1
+      Person person1(time,yRotationSpeed, yRotation, t, run1, 8.00);
+      std::vector<glm::mat4> vec1 = person1.getBodyVector();
+      if (person1.isFinished() == true) {
+        glutDestroyWindow(windowId);
+        exit(0);
+      }   
+      for (int i = 0; i < vec1.size(); i++) {
+        drawCube(vec1[i]);
+      }
 
-      Person person(time,yRotationSpeed, yRotation, t, run);
-      std::vector<glm::mat4> vec = person.getBodyVector();
-	  if (person.isFinished() == true) {
-		  glutDestroyWindow(windowId);
-		  exit(0);
-	  }
-      count+=1;
-
-      for(int i = 0; i < vec.size(); i++){
-        drawCube(vec[i]); 
+      //PERSON 2
+      Person person2(time, yRotationSpeed, yRotation, t, run2, -8.00);
+      std::vector<glm::mat4> vec2 = person2.getBodyVector();
+      if (person2.isFinished() == true) {
+        glutDestroyWindow(windowId);
+        exit(0);
+      }   
+      for(int i = 0; i < vec2.size(); i++){
+        drawCube(vec2[i]); 
       }
       //christian render function end
     
@@ -505,28 +516,15 @@ static void mouse(int button, int state, int x, int y) {
 }
 
 static void keyboard(unsigned char key, int x, int y) {
-  //christian keyboard function
-    if (key == 'r') {
-      if (yRotationSpeed > 0.0) {
-        yRotationSpeed = 0.0;
-      }
-      else {
-        yRotationSpeed = 0.1;
-      }
-      std::cout << "Toggling rotation, speed: " << yRotationSpeed << std::endl;
-    }
-    else if(key == 'g'){
-    	run+=2;
-      eyePosition += glm::vec3(0.0f, 0.0f, -2.0f);
-      centerPoint += glm::vec3(0.0f, 0.0f, -2.0f);
 
-
-    }
-    else if (key == 'a') {
-      isAnimating = !isAnimating;
-      std::cout << "Toggling animation: " << isAnimating << std::endl;
-      std::cout << "Key frame: " << keyFrame << std::endl;
-    }
+  if(key == 'q'){
+    run1+=2;
+    std::cout << "Player 1 steps: " << run1 / 2 << std::endl;
+  }
+  if (key == 'p') {
+    run2 += 2;
+    std::cout << "Player 2 steps: " << run2 / 2 << std::endl;
+  }
     std::cout << "Key pressed: " << key << std::endl;
 }
 

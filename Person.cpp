@@ -19,12 +19,14 @@
 #include <glm/gtx/transform.hpp>
 
 
-Person::Person(float thisTime, float rotSpeed, float yRot, float count, float step) {
+Person::Person(float thisTime, float rotSpeed, float yRot, float count, float step, float start) {
 	time = thisTime;
 	yRotationSpeed = rotSpeed;
 	yRotation = yRot;
 	t = count;
 	runStep = step;
+	startInitial = start;
+	
 
 }
 
@@ -43,8 +45,7 @@ std::vector<glm::mat4> Person::getBodyVector() {
 
 
 	//beszier implementation
-	//float x = pow((1 - t), 3) * (controlPoint1.x) + pow((1 - t), 2) * (3 * t) * (controlPoint2.x) + (1 - t) * (3 * (pow(t, 2))) * (controlPoint3.x) + pow(t, 3) * (controlPoint4.x);
-	float x = pow((1 - t), 3) * (controlPoint1.x) + pow((1 - t), 2) * (3 * t) * (controlPoint2.x) + (1 - t) * (3 * (pow(t, 2))) * (controlPoint3.x) + pow(t, 3) * (controlPoint4.x);
+	float x = startInitial;
 	float y = pow((1 - t), 3) * (controlPoint1.y) + pow((1 - t), 2) * (3 * t) * (controlPoint2.y) + (1 - t) * (3 * (pow(t, 2))) * (controlPoint3.y) + pow(t, 3) * (controlPoint4.y);
 	float z = -runStep;
 

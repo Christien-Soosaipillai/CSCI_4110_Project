@@ -27,12 +27,13 @@ private:
 
 public:
 
-	Person(float thisTime, float rotSpeed, float yRot, float count, float step);
+	Person(float thisTime, float rotSpeed, float yRot, float count, float step, float start);
 	float time;
 	float yRotationSpeed;
 	float yRotation;
 	float t;
 	float runStep;
+	float startInitial;
 	//return vector of mat4 for each body part
 	std::vector<glm::mat4> getBodyVector();
 	bool isFinished();
