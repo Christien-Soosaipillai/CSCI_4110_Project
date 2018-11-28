@@ -19,19 +19,16 @@
 
 #pragma once
 
-class Person {
-private:
+class Hurdle {
 
+private:
 
 public:
 
-	Person(float thisTime, float rotSpeed, float yRot, float count, float step, float start, double jumpTime);
-	float time, yRotationSpeed, yRotation, t, runStep, startInitial, x, y, z;
-	double jTime;
-	//return vector of mat4 for each body part
-	std::vector<glm::mat4> getBodyVector();
-	bool isFinished();
+	Hurdle(float point, float increment);
+	float startPoint;
+	float incrementDistance;
+	std::vector<glm::mat4> Hurdle::getHurdleVector();
 
 
 };
-

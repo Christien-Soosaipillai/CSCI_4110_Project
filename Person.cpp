@@ -19,14 +19,15 @@
 #include <glm/gtx/transform.hpp>
 
 
-Person::Person(float thisTime, float rotSpeed, float yRot, float count, float step, float start) {
+Person::Person(float thisTime, float rotSpeed, float yRot, float count, float step, float start, double jumpTime) {
 	time = thisTime;
 	yRotationSpeed = rotSpeed;
 	yRotation = yRot;
 	t = count;
 	runStep = step;
 	startInitial = start;
-	
+	jTime = jumpTime;
+
 
 }
 
@@ -39,16 +40,28 @@ std::vector<glm::mat4> Person::getBodyVector() {
 	glm::vec3 controlPoint4(44.00f, 0.00f, 0.00f);
 
 
-	//matrix for eac heirarchial transformation
+	//matrix for each heirarchial transformation
 	glm::mat4 torso, neck, head, rEye, lEye, upperRLeg, lowerRLeg, rFoot, upperLLeg, lowerLLeg, lFoot,
 		upperRArm, lowerRArm, rHand, upperLArm, lowerLArm, lHand;
+	
+	//std::cout << "jump when passed: " << jTime << std::endl;
 
+	if (jTime > 0.0010){
+		//std::cout << "Jumptime: "<< jumpTime << std::endl;	
+		x = startInitial;
+		y = (float) (2.00 * ((5.00 * jTime) - pow(jTime, 2.00)));				//formula used to calculate jump height ->2(5*dt - dt^2) ->formula will give us a noticable enough jump height
+		z = -runStep;															//value of steps taken 
+	
+	}
+	else {
 
-	//beszier implementation
-	float x = startInitial;
-	float y = pow((1 - t), 3) * (controlPoint1.y) + pow((1 - t), 2) * (3 * t) * (controlPoint2.y) + (1 - t) * (3 * (pow(t, 2))) * (controlPoint3.y) + pow(t, 3) * (controlPoint4.y);
-	float z = -runStep;
+		//beszier implementation
+		x = startInitial;
+		y = pow((1 - t), 3) * (controlPoint1.y) + pow((1 - t), 2) * (3 * t) * (controlPoint2.y) + (1 - t) * (3 * (pow(t, 2))) * (controlPoint3.y) + pow(t, 3) * (controlPoint4.y);
+		z = -runStep;
+	}
 
+	
 
 	//stores our body parts
 	std::vector<glm::mat4> bodyParts;
@@ -164,8 +177,6 @@ std::vector<glm::mat4> Person::getBodyVector() {
 	lHand = glm::rotate(lHand, glm::radians(20.0f) * sin(time) + 31.8f, glm::vec3(1.0f, 0.0f, 0.0f));
 	bodyParts.push_back(glm::scale(lHand, glm::vec3(0.7f)));           //yellow Cube
 
-
-
 	//Left leg upper
 	upperLLeg = torso;                              //no scale from our torso because of previous line of code
 	upperLLeg = glm::translate(upperLLeg, glm::vec3(-2.0f, -4.0f, 0.0f));     //The pivot
@@ -196,7 +207,7 @@ std::vector<glm::mat4> Person::getBodyVector() {
 
 bool Person::isFinished() {
 
-	if (runStep >= 100) {
+	if (runStep >= 200) {		//check if the distance is around 200
 		return true;
 	}
 	else {

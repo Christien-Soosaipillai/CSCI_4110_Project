@@ -25,7 +25,10 @@
   //person class
   #include "Person.h"
 
-  //end of includes
+  //Hurdle class
+  #include "Hurdle.h"
+
+//end of includes
 
 //variables
   GLuint skyboxTexture;
@@ -56,25 +59,29 @@
   int height = 768;
   bool isFinished = false;
 
-  //Christian Variables
-    //drawCube and animation
-    float yRotation = -85.0f;
-    float yRotationSpeed = 0.1f;
-    float time = 0.0f;
-    bool isAnimating = true;
-    int frame_delay = 500;
-    int keyFrame = 1;
-    int lastFrameMillis = 0;
-    glm::mat4 torso;
-    int count = 1;
-    float t;
-    int windowId = 0;
-    int run1;
-    int run2;
+  //Christian Variables/Functions
+  //drawCube and animation
+  float yRotation = -85.0f;
+  float yRotationSpeed = 0.1f;
+  float time = 0.0f;
+  int count = 1;
+  float t;
+  int windowId = 0;
+
+  //Calculating run and jump variables
+  float run1 = 1.00f;
+  float run2 = 1.00f;
+  double HurdleDist1 = -60.0f;
+  double HurdleDist2 = -120.0f;
+  bool hit1 = false;
+  bool hit2 = false;
+  double jumpTime1;
+  double jumpTime2;
 
 //functions
   //Forward Declare Functions
   void drawCube(glm::mat4 model, glm::vec4 color);
+  void getMiddleCamera(float point1, float point2);
 
   // static void createTexture(std::string filename);
   static GLuint createTexture(std::string filename);
@@ -162,25 +169,9 @@ static void createGeometry(void) {
 
 static void update(void) {
   int milliseconds = glutGet(GLUT_ELAPSED_TIME);
-  //if(!isFinished){
-    //christian update function
-      time = ((float)milliseconds / 500.0f) * (isAnimating ? 1.0f : 0.0f) * 5;
+  
+  time = ((float)milliseconds / 500.0f) * 5;
     
-      // we'll rotate our model by an ever-increasing angle so that we can see the texture
-      // rotate the entire model, to that we can examine it
-      yRotation += yRotationSpeed;
-    
-      // update the bones
-      if (isAnimating && ((milliseconds - lastFrameMillis) > frame_delay)) {
-       lastFrameMillis = milliseconds;
-       keyFrame++;
-    
-       if (keyFrame > 7) {
-         keyFrame = 0;
-        }
-      }
-      //end of christian update function
-  //}
 
   glutPostRedisplay();
 }
@@ -384,7 +375,7 @@ static void render(void) {
     // model matrix: translate, scale, and rotate the model
     model = glm::mat4(1.0f);
     // model = glm::mat4_cast(rotation);
-    model = glm::translate(model, glm::vec3(0.0f, -9.5f, -100.0f));
+    model = glm::translate(model, glm::vec3(0.0f, -9.5f, -200.0f));
     model = glm::scale(model, glm::vec3(50.0f, 0.01f, 10.0f));
 
     // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
@@ -439,36 +430,122 @@ static void render(void) {
     glDisableVertexAttribArray(normalAttribId);
   }
 
-  //christian render function start
-    t += 1.0f/7175.0f;
-    //std::cout << t << std::endl; 
-  
-    //Person 1
-      Person person1(time,yRotationSpeed, yRotation, t, run1, 8.00);
-      std::vector<glm::mat4> vec1 = person1.getBodyVector();
-      if (person1.isFinished() == true) {
-        isFinished = true;
-        // std::cout << "BLUE Player 1 wins!" << std::endl;
-        // glutDestroyWindow(windowId);
-        // exit(0);
-      }   
-      for (int i = 0; i < vec1.size(); i++) {
-        drawCube(vec1[i], glm::vec4(0.0f,0.0f,0.8f,1.0f));
-      }
+  //CHARACTER & HURDLE RENDER INFORMATION
+	{
+		t += 1.0f / 7175.0f;
 
-    //PERSON 2
-      Person person2(time, yRotationSpeed, yRotation, t, run2, -8.00);
-      std::vector<glm::mat4> vec2 = person2.getBodyVector();
-      if (person2.isFinished() == true) {
-        isFinished = true;
-        // std::cout << "RED Player 2 wins!" << std::endl;
-        // glutDestroyWindow(windowId);
-        // exit(0);
-      }   
-      for(int i = 0; i < vec2.size(); i++){
-        drawCube(vec2[i],  glm::vec4(0.8f,0.0f,0.0f,1.0f)); 
-      }
-      //christian render function end
+		//PERSON 1 Information
+		{
+			//checks if jump is initiated
+			if (jumpTime1 >= 0.005 && jumpTime1 <= 5.000) {
+				jumpTime1 += 0.005;		//increment our jumptime by a small value to display a more smother jump per each update we make
+			}
+
+			//check if player 1 hit the hurdle..
+			double runDistance1 = (time / 5.00) + run1;
+			hit1 = false;
+			std::cout << "runTime1: " << runDistance1 << std::endl;
+			if (runDistance1  >=57.0 && runDistance1 <=63.0 || runDistance1 >= 117.0 && runDistance1 <= 123.0) {
+				//check if the height at this hurdle is greater than 12.0f( the height of our hurdle)
+				if ((jumpTime1 <= 1.5 && jumpTime1 >= 0.0) && (runDistance1 >= 57.0 && runDistance1 <= 63.0 || runDistance1 >= 117.0 && runDistance1 <= 123.0)) {	//cleared the hurdle
+					//slow our player down by not allowing them to press run button
+					hit1 = true;
+				}
+			}
+
+			Person person1(time, yRotationSpeed, yRotation, t, (float)runDistance1, 8.00, jumpTime1);
+			std::vector<glm::mat4> vec1 = person1.getBodyVector();
+			if (person1.isFinished() == true) {
+				isFinished = true;
+				// std::cout << "BLUE Player 1 wins!" << std::endl;
+				// glutDestroyWindow(windowId);
+				// exit(0);
+			}
+			for (int i = 0; i < vec1.size(); i++) {
+				drawCube(vec1[i], glm::vec4(0.0f, 0.0f, 0.8f, 1.0f));
+			}
+
+			if (jumpTime1 >= 5.000) {
+				jumpTime1 = 0.000;
+			}
+		}
+
+		//PERSON 2 Information
+		{
+			//checks if jump is initiated ~ player 2
+			if (jumpTime2 >= 0.005 && jumpTime2 <= 5.000) {
+				jumpTime2 += 0.005;		//increment our jumptime by a small value to display a more smother jump per each update we make
+			}
+
+			//check if player 2 hit the hurdle..
+			double runDistance2 = (time / 5.00) + run2;
+			hit2 = false;
+			std::cout << "runTime1: " << runDistance2 << std::endl;
+			if (runDistance2 >= 57.0 && runDistance2 <= 63.0 || runDistance2 >= 117.0 && runDistance2 <= 123.0) {
+				//check if the height at this hurdle is greater than 12.0f( the height of our hurdle)
+				if ((jumpTime2 <= 1.5 && jumpTime2 >= 0.0) && (runDistance2 >= 57.0 && runDistance2 <= 63.0 || runDistance2 >= 117.0 && runDistance2 <= 123.0)) {	//cleared the hurdle
+					//slow our player down by not allowing them to press run button
+					hit2 = true;
+				}
+			}
+
+			Person person2(time, yRotationSpeed, yRotation, t, (float)runDistance2, -8.00, jumpTime2);
+			std::vector<glm::mat4> vec2 = person2.getBodyVector();
+			if (person2.isFinished() == true) {
+				isFinished = true;
+				// std::cout << "RED Player 2 wins!" << std::endl;
+				// glutDestroyWindow(windowId);
+				// exit(0);
+			}
+			for (int i = 0; i < vec2.size(); i++) {
+				drawCube(vec2[i], glm::vec4(0.8f, 0.0f, 0.0f, 1.0f));
+			}
+
+			if (jumpTime2 >= 5.000) {
+				jumpTime2 = 0.000;
+			}
+		}
+
+		//christian render function end
+		getMiddleCamera((time / 5.00) + run1, (time / 5.00) + run2);
+
+		//PLAYER 1 HURDLES
+		{
+			//hurdle1
+			Hurdle p1hurdle1(10.00, HurdleDist1);
+			std::vector<glm::mat4> p1hurd1 = p1hurdle1.getHurdleVector();
+			for (int i = 0; i < p1hurd1.size(); i++) {
+				drawCube(p1hurd1[i], glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+			}
+
+			//hurdle2
+			Hurdle p1hurdle2(10.00, HurdleDist2);
+			std::vector<glm::mat4> p1hurd2 = p1hurdle2.getHurdleVector();
+			for (int i = 0; i < p1hurd2.size(); i++) {
+				drawCube(p1hurd2[i], glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+			}
+
+		}
+
+		//PLAYER 2 HURDLES
+		{
+			//hurdle1
+			Hurdle p2hurdle1(-10.00, HurdleDist1);
+			std::vector<glm::mat4> p2hurd1 = p2hurdle1.getHurdleVector();
+			for (int i = 0; i < p2hurd1.size(); i++) {
+				drawCube(p2hurd1[i], glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+			}
+
+			//hurdle2
+			Hurdle p2hurdle2(-10.00, HurdleDist2);
+			std::vector<glm::mat4> p2hurd2 = p2hurdle2.getHurdleVector();
+			for (int i = 0; i < p2hurd2.size(); i++) {
+				drawCube(p2hurd2[i], glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+			}
+
+		}
+
+	}
   
   // make the draw buffer to display buffer (i.e. display what we have drawn)
   glutSwapBuffers();
@@ -488,21 +565,36 @@ static void mouse(int button, int state, int x, int y) {
 }
 
 static void keyboard(unsigned char key, int x, int y) {
-  if(!isFinished){
-    if(key == 'p'){
-      run1+=2;
-      std::cout << "Player 1 steps: " << run1 / 2 << std::endl;
-    }
-    if(key == 'q'){
-      run2 += 2;
-      std::cout << "Player 2 steps: " << run2 / 2 << std::endl;
-    }
-    //update eyeposition and look at poisition to follow players
-    eyePosition += glm::vec3(0.0f, 0.0f, -1.0f);
-    centerPoint += glm::vec3(0.0f, 0.0f, -1.0f);
-    std::cout << "Key pressed: " << key << std::endl;
-  }
+
+	if (key == 27) {
+		glutDestroyWindow(windowId);
+		exit(0);
+	}
+	if (!isFinished) {
+		//Player 1 functionality
+		if (key == 'p') {	//jump
+			if (jumpTime1 == 0.000) {
+				jumpTime1 = 0.005;
+			}
+		}
+		if (key == 'o' && hit1 == false) {	//run1
+			run1 += 1.00f;
+			std::cout << "run1: " << run1 << std::endl;
+		}
+		//Player 2 functionality
+		if (key == 'w') {	//jump
+			if (jumpTime2 == 0.000) {
+				jumpTime2 = 0.005;
+			}
+		}
+		if (key == 'q' && hit2 == false) {		//run2
+			run2 += 1.00f;
+			//std::cout << "Player 2 steps: " << run2 / 2 << std::endl;
+		}
+		
+	}
 }
+
 
 int main(int argc, char** argv) {
   glutInit(&argc, argv);
@@ -663,4 +755,13 @@ void drawCube(glm::mat4 model, glm::vec4 color){
   glDisableVertexAttribArray(positionAttribId);
   glDisableVertexAttribArray(textureCoordsAttribId);
   glDisableVertexAttribArray(normalAttribId); 
+}
+
+void getMiddleCamera(float point1, float point2) {
+
+	float middlePoint = (point1 + point2) / 2.00f;
+	//std::cout << middlePoint << std::endl;
+	eyePosition = glm::vec3(0.0f, 50.0f, 150.0f - middlePoint);	//move closer to our center point
+	centerPoint = glm::vec3(0.0f, 0.0f, 0 - middlePoint);	//move our center point for our characters
+
 }
