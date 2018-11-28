@@ -1,5 +1,4 @@
 uniform mat4 u_MVPMatrix;
-uniform mat4 u_MVMatrix;
 
 attribute vec4 position;
 attribute vec3 normal;
@@ -14,6 +13,4 @@ void main() {
 	v_TextureCoords = textureCoords;
     v_Normal = normal;
     v_Position = gl_Position.xyz;
-
-    //v_Normal = vec3(u_MVMatrix * vec4(normal, 0.0));
 }

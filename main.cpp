@@ -28,10 +28,9 @@
   //end of includes
 
 //variables
-  unsigned int skyboxTexture;
-  unsigned int allTextures[4];
-  unsigned int numVertices;
-
+  GLuint skyboxTexture;
+  GLuint allTextures[4];
+  GLuint numVertices;
   GLuint programId;
   GLuint skyboxProgramId;
 
@@ -52,16 +51,12 @@
   glm::mat4 projection;
   float aspectRatio;
 
-  //for testing camera rotation
-  float angle = 0.0f;
-  bool rotateObject = true;
-
   //other variables
   int width = 1024;
   int height = 768;
   bool isFinished = false;
 
-  //Christian Variables/Functions
+  //Christian Variables
     //drawCube and animation
     float yRotation = -85.0f;
     float yRotationSpeed = 0.1f;
@@ -82,8 +77,8 @@
   void drawCube(glm::mat4 model, glm::vec4 color);
 
   // static void createTexture(std::string filename);
-  static unsigned int createTexture(std::string filename);
-  static unsigned int createCubemap(std::vector<std::string> filenames);
+  static GLuint createTexture(std::string filename);
+  static GLuint createCubemap(std::vector<std::string> filenames);
 
 static void createSkybox(void) {
   float skyboxPositions[] = {
@@ -185,12 +180,6 @@ static void update(void) {
         }
       }
       //end of christian update function
-  
-    // rotate the shape about the y-axis so that we can see the shading
-    if (rotateObject) {
-      float degrees = (float)milliseconds / 80.0f;
-      angle = degrees;
-    }
   //}
 
   glutPostRedisplay();
@@ -208,6 +197,7 @@ static void render(void) {
                       glm::vec3(0,1,0)     // up
                     );
   // view = glm::rotate(view, glm::radians(90.0f), glm::vec3(0, 1, 0));
+  // view = glm::rotate(view, glm::radians(yRotation), glm::vec3(0, 1, 0));
   aspectRatio = (float)width / (float)height;
   projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 1000.0f);
 
@@ -259,21 +249,15 @@ static void render(void) {
 
     // model matrix: translate, scale, and rotate the model
     model = glm::mat4(1.0f);
-    // model = glm::mat4_cast(rotation);
     model = glm::translate(model, glm::vec3(0.0f, -12.0f, 0.0f));    
     model = glm::scale(model, glm::vec3(1000.0f, 0.01f, 1000.0f));
-
-    // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
 
     // model-view-projection matrix
     glm::mat4 mvp = projection * view * model;
     GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
     glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
 
-    // model matrix
-    GLuint mMatrixId = glGetUniformLocation(programId, "u_ModelMatrix");
-    glUniformMatrix4fv(mMatrixId, 1, GL_FALSE, &model[0][0]);
-
+    // texture
     GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
     glActiveTexture(GL_TEXTURE0);  // texture unit 0
     glBindTexture(GL_TEXTURE_2D, allTextures[0]);
@@ -283,12 +267,12 @@ static void render(void) {
     GLuint eyePosId = glGetUniformLocation(programId, "u_EyePosition");
     glUniform3f(eyePosId, eyePosition.x, eyePosition.y, eyePosition.z);
     
-    //light position. point to the right
-    glm::vec3 lightPosDir = glm::vec3(0.0f, 50.0f, 150.0f);
+    //light position
+    glm::vec3 lightPos = glm::vec3(0.0f, 100.0f, 100.0f);
     // the position of our light
     GLuint lightPosId = glGetUniformLocation(programId, "u_LightPos");
     // glUniform3f(lightPosId, 10, 8, -2);
-    glUniform3fv(lightPosId, 1, &lightPosDir[0]);
+    glUniform3fv(lightPosId, 1, &lightPos[0]);
 
     // the colour of our object
     glm::vec4 color = glm::vec4(0.1f, 0.3f, 0.1f, 1.0f); 
@@ -297,7 +281,7 @@ static void render(void) {
 
     // the shininess of the object's surface
     GLuint shininessId = glGetUniformLocation(programId, "u_Shininess");
-    glUniform1f(shininessId, 3);
+    glUniform1f(shininessId, 1);
 
     // find the names (ids) of each vertex attribute
     GLint positionAttribId = glGetAttribLocation(programId, "position");
@@ -347,14 +331,11 @@ static void render(void) {
     GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
     glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
 
-    // model matrix
-    GLuint mMatrixId = glGetUniformLocation(programId, "u_ModelMatrix");
-    glUniformMatrix4fv(mMatrixId, 1, GL_FALSE, &model[0][0]);
-
+    // texture
     GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
-    glActiveTexture(GL_TEXTURE0);  // texture unit 0
+    glActiveTexture(GL_TEXTURE1);  // texture unit 0
     glBindTexture(GL_TEXTURE_2D, allTextures[2]);
-    glUniform1i(textureId, 0);
+    glUniform1i(textureId, 1);
 
     // the colour of our object
     glm::vec4 color = glm::vec4(0.3f, 0.1f, 0.1f, 1.0f); 
@@ -363,7 +344,7 @@ static void render(void) {
 
     // the shininess of the object's surface
     GLuint shininessId = glGetUniformLocation(programId, "u_Shininess");
-    glUniform1f(shininessId, 2);
+    glUniform1f(shininessId, 1);
 
     // find the names (ids) of each vertex attribute
     GLint positionAttribId = glGetAttribLocation(programId, "position");
@@ -413,14 +394,11 @@ static void render(void) {
     GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
     glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
 
-    // model matrix
-    GLuint mMatrixId = glGetUniformLocation(programId, "u_ModelMatrix");
-    glUniformMatrix4fv(mMatrixId, 1, GL_FALSE, &model[0][0]);
-
+    // texture
     GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
-    glActiveTexture(GL_TEXTURE0);  // texture unit 0
+    glActiveTexture(GL_TEXTURE1);  // texture unit 0
     glBindTexture(GL_TEXTURE_2D, allTextures[2]);
-    glUniform1i(textureId, 0);
+    glUniform1i(textureId, 1);
 
     // the colour of our object
     glm::vec4 color = glm::vec4(0.8f, 1.0f, 0.0f, 1.0f); 
@@ -580,7 +558,7 @@ int main(int argc, char** argv) {
   return 0;
 }
 
-static unsigned int createCubemap(std::vector<std::string> filenames) {
+static GLuint createCubemap(std::vector<std::string> filenames) {
     GLuint textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
@@ -609,7 +587,7 @@ static unsigned int createCubemap(std::vector<std::string> filenames) {
     return textureID;
 }
 
-static unsigned int createTexture(std::string filename) {
+static GLuint createTexture(std::string filename) {
   int width, height, numChannels;
   unsigned char *bitmap = stbi_load(filename.c_str(), 
                                     &width, 
@@ -649,12 +627,11 @@ void drawCube(glm::mat4 model, glm::vec4 color){
 
   // texture sampler - a reference to the texture we've previously created
   GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
-  glActiveTexture(GL_TEXTURE0);  // texture unit 0
+  glActiveTexture(GL_TEXTURE2);  // texture unit 0
   glBindTexture(GL_TEXTURE_2D, allTextures[1]);
-  glUniform1i(textureId, 0);
+  glUniform1i(textureId, 2);
 
   // the colour of our object
-  //glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); 
   GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
   glUniform4fv(diffuseColourId, 1, &color[0]);
 
