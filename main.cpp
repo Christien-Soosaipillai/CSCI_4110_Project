@@ -59,6 +59,11 @@
   int height = 768;
   bool isFinished = false;
 
+  //BOID Variables
+  const int BOIDS_COUNT = 300;
+  float deltaTime = 0.0f;
+  float prevTime = 0.0f;
+
   //Christian Variables/Functions
   //drawCube and animation
   float yRotation = -85.0f;
@@ -86,6 +91,122 @@
   // static void createTexture(std::string filename);
   static GLuint createTexture(std::string filename);
   static GLuint createCubemap(std::vector<std::string> filenames);
+  static void drawShip(glm::vec3 position, glm::vec3 direction, glm::vec4 color);
+
+class Boid {
+  public:
+    glm::vec3 position;
+    glm::vec3 velocity;
+
+    float seperationFacotor = 0.4f;
+    float cohesionFactor = 0.3f;
+    float alignmentFactor = 0.3f;
+
+    Boid(glm::vec3 a_position): position(a_position){
+      velocity = glm::normalize(a_position)*2.0f;
+    } 
+
+    void CapVelocity(float maxSpeed){
+      if(glm::length(velocity) > maxSpeed){
+        velocity = glm::normalize(velocity)*maxSpeed;
+      }
+    }
+
+    void ApplyCohesion(glm::vec3 cohesionVector){
+      velocity += cohesionVector * cohesionFactor;
+    }
+    void ApplySeperation(glm::vec3 seperationVector){
+      velocity += seperationFacotor*seperationVector;
+    }
+    void ApplyAlignment(glm::vec3 alignmentVector){
+      velocity += alignmentVector*alignmentFactor;
+    }
+};
+
+class BoidManager {
+  public:
+    BoidManager(int a_numBoids){
+      for (int i = 0; i < a_numBoids; i++){
+        glm::vec3 startingPosition = glm::vec3(sin((float)i)*10.0f, cos((float)i)*10.0f, 10.0f);
+        // glm::vec3 startingPosition = glm::vec3(0.0f, 9.0f, 9.0f);
+
+        Boid boid =  Boid(startingPosition);
+        boids.push_back(boid);
+      }
+    }
+    glm::vec3 GetGroupAlignment(glm::vec3 centerPosition, float radius){
+      glm::vec3 averageAlignment = glm::vec3(0.0f);
+      float count = 0.0f;
+
+      for(int i = 0; i < boids.size(); i++){
+        if (glm::length(boids[i].position - centerPosition) < radius){
+          glm::vec3 direction = glm::normalize(boids[i].velocity);
+          averageAlignment += direction;
+          count += 1.0f;
+        }
+      }
+      if (count == 0.0f) return glm::vec3(0.0f);
+      return averageAlignment/count;
+    }
+
+    glm::vec3 GetGroupPosition(glm::vec3 centerPosition, float radius){
+      glm::vec3 averagePosition = glm::vec3(0.0f);
+      float count = 0.0f;
+
+      for(int i = 0; i < boids.size(); i++){
+        if (glm::length(boids[i].position - centerPosition) < radius){
+          averagePosition += boids[i].position;
+          count += 1.0f;
+        }
+      }
+      if (count == 0.0f) return glm::vec3(0.0f);
+      return averagePosition/count;
+    }
+
+    void UpdateBoids(float dt){
+      for(int i =0; i < boids.size(); i++){
+        boids[i].CapVelocity(5.0f);
+
+        glm::vec3 alignmentVector = GetGroupAlignment(boids[i].position, 1.0f);
+        glm::vec3 seperationVector = boids[i].position - GetGroupPosition(boids[i].position, 1.0f);
+        glm::vec3 cohesionVector = GetGroupPosition(boids[i].position, 1.0f) - boids[i].position;
+
+        boids[i].ApplySeperation(seperationVector);
+        boids[i].ApplyCohesion(cohesionVector);
+        boids[i].ApplyAlignment(alignmentVector);
+
+        boids[i].position += boids[i].velocity*dt;
+
+        float upperBound = 80.0f;
+        float lowerBound = -80.0f;
+
+        float upperYBound = 80.0f;
+        float lowerYBound = -12.0f;
+
+        if (boids[i].position.x > upperBound){
+          boids[i].position.x = lowerBound;
+        }
+        if (boids[i].position.x < lowerBound){
+          boids[i].position.x = upperBound;
+        }
+        if (boids[i].position.y > upperYBound){
+          boids[i].position.y = lowerYBound;
+        }
+        if (boids[i].position.y < lowerYBound){
+          boids[i].position.y = upperYBound;
+        }
+        if (boids[i].position.z > upperBound){
+          boids[i].position.z = lowerBound;
+        }
+        if (boids[i].position.z < lowerBound){
+          boids[i].position.z = upperBound;
+        }
+      }
+    }
+    std::vector<Boid> boids;
+};
+
+BoidManager* manager;
 
 static void createSkybox(void) {
   float skyboxPositions[] = {
@@ -171,6 +292,11 @@ static void update(void) {
   int milliseconds = glutGet(GLUT_ELAPSED_TIME);
   
   time = ((float)milliseconds / 500.0f) * 5;
+
+  float boidtime = (float)glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+  deltaTime = boidtime - prevTime;
+  prevTime = boidtime;
+  manager->UpdateBoids(deltaTime);
     
 
   glutPostRedisplay();
@@ -457,6 +583,23 @@ static void render(void) {
 			std::vector<glm::mat4> vec1 = person1.getBodyVector();
 			if (person1.isFinished() == true) {
 				isFinished = true;
+        {
+          // activate our shader program
+          glUseProgram(programId);
+
+          // turn on depth buffering
+          glEnable(GL_DEPTH_TEST);
+
+          // draw the ship
+          for (int i =0;  i < manager->boids.size(); i++){
+          Boid b = manager->boids[i];
+          glm::vec4 color = glm::vec4(0.0f,0.0f,0.8f,1.0f);
+          drawShip(b.position, glm::normalize(b.velocity), color);
+          }
+
+          // disable the attribute array
+          // glDisableVertexAttribArray(positionBufferId);
+        }
 				// std::cout << "BLUE Player 1 wins!" << std::endl;
 				// glutDestroyWindow(windowId);
 				// exit(0);
@@ -493,6 +636,23 @@ static void render(void) {
 			std::vector<glm::mat4> vec2 = person2.getBodyVector();
 			if (person2.isFinished() == true) {
 				isFinished = true;
+        {
+          // activate our shader program
+          glUseProgram(programId);
+
+          // turn on depth buffering
+          glEnable(GL_DEPTH_TEST);
+
+          // draw the ship
+          for (int i =0;  i < manager->boids.size(); i++){
+          Boid b = manager->boids[i];
+          glm::vec4 color = glm::vec4(0.8f,0.0f,0.0f,1.0f);
+          drawShip(b.position, glm::normalize(b.velocity), color);
+          }
+
+          // disable the attribute array
+          // glDisableVertexAttribArray(positionBufferId);
+        }
 				// std::cout << "RED Player 2 wins!" << std::endl;
 				// glutDestroyWindow(windowId);
 				// exit(0);
@@ -636,6 +796,9 @@ int main(int argc, char** argv) {
   //texture for testing
   allTextures[3] = createTexture("textures/checkered.jpg");
 
+  //boids
+  manager = new BoidManager(BOIDS_COUNT);
+
   //load the GLSL shader programs
   ShaderProgram program;
   program.loadShaders("shaders/my_vertex.glsl", "shaders/my_fragment.glsl");
@@ -764,4 +927,59 @@ void getMiddleCamera(float point1, float point2) {
 	eyePosition = glm::vec3(0.0f, 50.0f, 150.0f - middlePoint);	//move closer to our center point
 	centerPoint = glm::vec3(0.0f, 0.0f, 0 - middlePoint);	//move our center point for our characters
 
+}
+
+static void drawShip(glm::vec3 position, glm::vec3 direction, glm::vec4 color) {
+
+  // model matrix: translate, scale, and rotate the model
+  float angle = glm::atan(direction.y, direction.x);
+
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, position);
+  model = glm::translate(model, glm::vec3(0.0f, 10.0f, -100.0f));
+  // model = glm::rotate(model, angle+glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // model-view-projection matrix
+  glm::mat4 mvp = projection * view * model;
+  GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
+  glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
+
+  // texture sampler - a reference to the texture we've previously created
+  GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
+  glActiveTexture(GL_TEXTURE2);  // texture unit 0
+  glBindTexture(GL_TEXTURE_2D, allTextures[1]);
+  glUniform1i(textureId, 2);
+
+  // the colour of our object
+  GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
+  glUniform4fv(diffuseColourId, 1, &color[0]);
+
+  // find the names (ids) of each vertex attribute
+  GLint positionAttribId = glGetAttribLocation(programId, "position");
+  GLint textureCoordsAttribId = glGetAttribLocation(programId, "textureCoords");
+  GLint normalAttribId = glGetAttribLocation(programId, "normal");
+
+  // provide the vertex positions to the shaders
+  glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
+  glEnableVertexAttribArray(positionAttribId);
+  glVertexAttribPointer(positionAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+  // provide the vertex texture coordinates to the shaders
+  glBindBuffer(GL_ARRAY_BUFFER, textureCoords_vbo);
+  glEnableVertexAttribArray(textureCoordsAttribId);
+  glVertexAttribPointer(textureCoordsAttribId, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+  // provide the vertex normals to the shaders
+  glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
+  glEnableVertexAttribArray(normalAttribId);
+  glVertexAttribPointer(normalAttribId, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+  // draw the triangles
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+  glDrawElements(GL_TRIANGLES, numVertices, GL_UNSIGNED_INT, (void*)0);
+
+  // disable the attribute arrays
+  glDisableVertexAttribArray(positionAttribId);
+  glDisableVertexAttribArray(textureCoordsAttribId);
+  glDisableVertexAttribArray(normalAttribId); 
 }
