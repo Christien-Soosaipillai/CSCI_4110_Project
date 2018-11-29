@@ -570,7 +570,7 @@ static void render(void) {
 			//check if player 1 hit the hurdle..
 			double runDistance1 = (time / 5.00) + run1;
 			hit1 = false;
-			std::cout << "runTime1: " << runDistance1 << std::endl;
+			// std::cout << "runTime1: " << runDistance1 << std::endl;
 			if (runDistance1  >=57.0 && runDistance1 <=63.0 || runDistance1 >= 117.0 && runDistance1 <= 123.0) {
 				//check if the height at this hurdle is greater than 12.0f( the height of our hurdle)
 				if ((jumpTime1 <= 1.5 && jumpTime1 >= 0.0) && (runDistance1 >= 57.0 && runDistance1 <= 63.0 || runDistance1 >= 117.0 && runDistance1 <= 123.0)) {	//cleared the hurdle
@@ -623,7 +623,7 @@ static void render(void) {
 			//check if player 2 hit the hurdle..
 			double runDistance2 = (time / 5.00) + run2;
 			hit2 = false;
-			std::cout << "runTime1: " << runDistance2 << std::endl;
+			// std::cout << "runTime1: " << runDistance2 << std::endl;
 			if (runDistance2 >= 57.0 && runDistance2 <= 63.0 || runDistance2 >= 117.0 && runDistance2 <= 123.0) {
 				//check if the height at this hurdle is greater than 12.0f( the height of our hurdle)
 				if ((jumpTime2 <= 1.5 && jumpTime2 >= 0.0) && (runDistance2 >= 57.0 && runDistance2 <= 63.0 || runDistance2 >= 117.0 && runDistance2 <= 123.0)) {	//cleared the hurdle
@@ -739,8 +739,9 @@ static void keyboard(unsigned char key, int x, int y) {
 		}
 		if (key == 'o' && hit1 == false) {	//run1
 			run1 += 1.00f;
-			std::cout << "run1: " << run1 << std::endl;
+			// std::cout << "run1: " << run1 << std::endl;
 		}
+
 		//Player 2 functionality
 		if (key == 'w') {	//jump
 			if (jumpTime2 == 0.000) {
@@ -760,7 +761,7 @@ int main(int argc, char** argv) {
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
   glutInitWindowSize(width, height);
-  glutCreateWindow("CSCI 4110U - Graphics Project: Brick Olympics");
+  glutCreateWindow("CSCI 4110U - Graphics Project: The Brick Olympics");
   glutIdleFunc(&update);
   glutDisplayFunc(&render);
   glutReshapeFunc(&reshape);
@@ -807,6 +808,21 @@ int main(int argc, char** argv) {
   ShaderProgram skyboxProgram;
   skyboxProgram.loadShaders("shaders/skybox_vertex.glsl", "shaders/skybox_fragment.glsl");
   skyboxProgramId = skyboxProgram.getProgramId();
+
+
+  //display out for introduction and controls
+  std::cout << std::endl << "Welcome to the Brick Olympics!" << std::endl << std::endl;
+  std::cout << "This is a test of might between Player 1 (RED) and Player 2 (BLUE)" << std::endl;
+  std::cout << "Rapidly press the run button to reach the finishline!" << std::endl;
+  std::cout << "But watch out! There are hurdles which slow you down. Jump over them!" << std::endl << std::endl;
+
+  std::cout << "Controls Player 1 (RED):" << std::endl;
+  std::cout << "\tq - runs" << std::endl;
+  std::cout << "\tw - jump" << std::endl;
+
+  std::cout << "Controls Player 2 (BLUE):" << std::endl;
+  std::cout << "\to - runs" << std::endl;
+  std::cout << "\tp - jump" << std::endl;
 
   glutMainLoop();
 
