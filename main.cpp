@@ -127,9 +127,7 @@ class BoidManager {
   public:
     BoidManager(int a_numBoids){
       for (int i = 0; i < a_numBoids; i++){
-        glm::vec3 startingPosition = glm::vec3(sin((float)i)*10.0f, cos((float)i)*10.0f, 10.0f);
-        // glm::vec3 startingPosition = glm::vec3(0.0f, 9.0f, 9.0f);
-
+        glm::vec3 startingPosition = glm::vec3(sin((float)i)*10.0f, cos((float)i)*10.0f, tan((float)i)*10.0f);
         Boid boid =  Boid(startingPosition);
         boids.push_back(boid);
       }
@@ -556,6 +554,22 @@ static void render(void) {
     glDisableVertexAttribArray(normalAttribId);
   }
 
+  //testing boids
+    // {   
+    //   // activate our shader program
+    //   glUseProgram(programId);
+
+    //   // turn on depth buffering
+    //   glEnable(GL_DEPTH_TEST);
+
+    //   // draw the ship
+    //   for (int i =0;  i < manager->boids.size(); i++){
+    //     Boid b = manager->boids[i];
+    //     glm::vec4 color = glm::vec4(0.8f,0.0f,0.0f,1.0f);
+    //     drawShip(b.position, glm::normalize(b.velocity), color);
+    //   }
+    // }
+
   //CHARACTER & HURDLE RENDER INFORMATION
 	{
 		t += 1.0f / 7175.0f;
@@ -592,9 +606,9 @@ static void render(void) {
 
           // draw the ship
           for (int i =0;  i < manager->boids.size(); i++){
-          Boid b = manager->boids[i];
-          glm::vec4 color = glm::vec4(0.0f,0.0f,0.8f,1.0f);
-          drawShip(b.position, glm::normalize(b.velocity), color);
+            Boid b = manager->boids[i];
+            glm::vec4 color = glm::vec4(0.0f,0.0f,0.8f,1.0f);
+            drawShip(b.position, glm::normalize(b.velocity), color);
           }
 
           // disable the attribute array
@@ -645,9 +659,9 @@ static void render(void) {
 
           // draw the ship
           for (int i =0;  i < manager->boids.size(); i++){
-          Boid b = manager->boids[i];
-          glm::vec4 color = glm::vec4(0.8f,0.0f,0.0f,1.0f);
-          drawShip(b.position, glm::normalize(b.velocity), color);
+            Boid b = manager->boids[i];
+            glm::vec4 color = glm::vec4(0.8f,0.0f,0.0f,1.0f);
+            drawShip(b.position, glm::normalize(b.velocity), color);
           }
 
           // disable the attribute array
@@ -797,7 +811,7 @@ int main(int argc, char** argv) {
   //texture for testing
   allTextures[3] = createTexture("textures/checkered.jpg");
 
-  //boids
+  //boids confetti
   manager = new BoidManager(BOIDS_COUNT);
 
   //load the GLSL shader programs
@@ -951,9 +965,15 @@ static void drawShip(glm::vec3 position, glm::vec3 direction, glm::vec4 color) {
   float angle = glm::atan(direction.y, direction.x);
 
   model = glm::mat4(1.0f);
+
+
   model = glm::translate(model, position);
   model = glm::translate(model, glm::vec3(0.0f, 10.0f, -100.0f));
-  // model = glm::rotate(model, angle+glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+  model = glm::scale(model, glm::vec3(1.0f, 1.0f, 4.0f));
+  model = glm::rotate(model, angle+glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+  model = glm::rotate(model, angle+glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
+  model = glm::rotate(model, angle+glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 1.0f));
+  
 
     // model-view-projection matrix
   glm::mat4 mvp = projection * view * model;
@@ -961,10 +981,10 @@ static void drawShip(glm::vec3 position, glm::vec3 direction, glm::vec4 color) {
   glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, &mvp[0][0]);
 
   // texture sampler - a reference to the texture we've previously created
-  GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
-  glActiveTexture(GL_TEXTURE2);  // texture unit 0
-  glBindTexture(GL_TEXTURE_2D, allTextures[1]);
-  glUniform1i(textureId, 2);
+  // GLuint textureId  = glGetUniformLocation(programId, "u_TextureSampler");
+  // glActiveTexture(GL_TEXTURE4);  // texture unit 0
+  // glBindTexture(GL_TEXTURE_2D, allTextures[3]);
+  // glUniform1i(textureId, 4);
 
   // the colour of our object
   GLuint diffuseColourId = glGetUniformLocation(programId, "u_DiffuseColour");
