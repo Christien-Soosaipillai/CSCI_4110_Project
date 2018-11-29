@@ -28,7 +28,6 @@ Person::Person(float thisTime, float rotSpeed, float yRot, float count, float st
 	startInitial = start;
 	jTime = jumpTime;
 
-
 }
 
 std::vector<glm::mat4> Person::getBodyVector() {
@@ -39,15 +38,11 @@ std::vector<glm::mat4> Person::getBodyVector() {
 	glm::vec3 controlPoint3(32.00f, 0.00f, 0.00f);
 	glm::vec3 controlPoint4(44.00f, 0.00f, 0.00f);
 
-
 	//matrix for each heirarchial transformation
 	glm::mat4 torso, neck, head, rEye, lEye, upperRLeg, lowerRLeg, rFoot, upperLLeg, lowerLLeg, lFoot,
 		upperRArm, lowerRArm, rHand, upperLArm, lowerLArm, lHand;
 	
-	//std::cout << "jump when passed: " << jTime << std::endl;
-
 	if (jTime > 0.0010){
-		//std::cout << "Jumptime: "<< jumpTime << std::endl;	
 		x = startInitial;
 		y = (float) (2.00 * ((5.00 * jTime) - pow(jTime, 2.00)));				//formula used to calculate jump height ->2(5*dt - dt^2) ->formula will give us a noticable enough jump height
 		z = -runStep;															//value of steps taken 
@@ -61,20 +56,13 @@ std::vector<glm::mat4> Person::getBodyVector() {
 		z = -runStep;
 	}
 
-	
-
 	//stores our body parts
 	std::vector<glm::mat4> bodyParts;
-	//std::cout << time << std::endl;
 
 	// model matrix: translate, scale, and rotate the model
 	glm::vec3 rotationAxis(0, 1, 0);
 
 	glm::mat4 model = glm::mat4(1.0f);
-	//model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	//std::cout << "Coordinates: " << x << "," << y << "," << z << std::endl;  
-
 
 	torso = model;
 	torso = glm::translate(torso, glm::vec3(x, y, z));         //running code

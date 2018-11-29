@@ -69,9 +69,15 @@
   float yRotation = -85.0f;
   float yRotationSpeed = 0.1f;
   float time = 0.0f;
+  float lastTime;
   int count = 1;
   float t;
   int windowId = 0;
+  bool player1Wins;
+  bool player2Wins;
+  double finishCounter = 0;
+  
+
 
   //Calculating run and jump variables
   float run1 = 1.00f;
@@ -311,8 +317,7 @@ static void render(void) {
                       centerPoint,    // where to look
                       glm::vec3(0,1,0)     // up
                     );
-  // view = glm::rotate(view, glm::radians(90.0f), glm::vec3(0, 1, 0));
-  // view = glm::rotate(view, glm::radians(yRotation), glm::vec3(0, 1, 0));
+  
   aspectRatio = (float)width / (float)height;
   projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 1000.0f);
 
@@ -439,8 +444,6 @@ static void render(void) {
     model = glm::translate(model, glm::vec3(0.0f, -10.0f, -190.0f));
     model = glm::scale(model, glm::vec3(50.0f, 0.01f, 600.0f));
 
-    // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
-
     // model-view-projection matrix
     glm::mat4 mvp = projection * view * model;
     GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
@@ -502,8 +505,6 @@ static void render(void) {
     model = glm::translate(model, glm::vec3(0.0f, -9.5f, -200.0f));
     model = glm::scale(model, glm::vec3(50.0f, 0.01f, 10.0f));
 
-    // model = glm::scale(model, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
-
     // model-view-projection matrix
     glm::mat4 mvp = projection * view * model;
     GLuint mvpMatrixId = glGetUniformLocation(programId, "u_MVPMatrix");
@@ -554,22 +555,6 @@ static void render(void) {
     glDisableVertexAttribArray(normalAttribId);
   }
 
-  //testing boids
-    // {   
-    //   // activate our shader program
-    //   glUseProgram(programId);
-
-    //   // turn on depth buffering
-    //   glEnable(GL_DEPTH_TEST);
-
-    //   // draw the ship
-    //   for (int i =0;  i < manager->boids.size(); i++){
-    //     Boid b = manager->boids[i];
-    //     glm::vec4 color = glm::vec4(0.8f,0.0f,0.0f,1.0f);
-    //     drawShip(b.position, glm::normalize(b.velocity), color);
-    //   }
-    // }
-
   //CHARACTER & HURDLE RENDER INFORMATION
 	{
 		t += 1.0f / 7175.0f;
@@ -578,13 +563,13 @@ static void render(void) {
 		{
 			//checks if jump is initiated
 			if (jumpTime1 >= 0.005 && jumpTime1 <= 5.000) {
-				jumpTime1 += 0.005;		//increment our jumptime by a small value to display a more smother jump per each update we make
+				jumpTime1 += 0.040;		//increment our jumptime by a small value to display a more smother jump per each update we make
 			}
 
 			//check if player 1 hit the hurdle..
 			double runDistance1 = (time / 5.00) + run1;
+			
 			hit1 = false;
-			// std::cout << "runTime1: " << runDistance1 << std::endl;
 			if (runDistance1  >=57.0 && runDistance1 <=63.0 || runDistance1 >= 117.0 && runDistance1 <= 123.0) {
 				//check if the height at this hurdle is greater than 12.0f( the height of our hurdle)
 				if ((jumpTime1 <= 1.5 && jumpTime1 >= 0.0) && (runDistance1 >= 57.0 && runDistance1 <= 63.0 || runDistance1 >= 117.0 && runDistance1 <= 123.0)) {	//cleared the hurdle
@@ -592,32 +577,35 @@ static void render(void) {
 					hit1 = true;
 				}
 			}
+			if (isFinished) {
+				runDistance1 = (lastTime / 5.00) + run1;
+			}
+			else {
+				lastTime = time;
+			}
 
 			Person person1(time, yRotationSpeed, yRotation, t, (float)runDistance1, 8.00, jumpTime1);
 			std::vector<glm::mat4> vec1 = person1.getBodyVector();
+			
+
 			if (person1.isFinished() == true) {
 				isFinished = true;
-        {
-          // activate our shader program
-          glUseProgram(programId);
-
-          // turn on depth buffering
-          glEnable(GL_DEPTH_TEST);
-
-          // draw the ship
-          for (int i =0;  i < manager->boids.size(); i++){
-            Boid b = manager->boids[i];
-            glm::vec4 color = glm::vec4(0.0f,0.0f,0.8f,1.0f);
-            drawShip(b.position, glm::normalize(b.velocity), color);
-          }
-
-          // disable the attribute array
-          // glDisableVertexAttribArray(positionBufferId);
-        }
-				// std::cout << "BLUE Player 1 wins!" << std::endl;
-				// glutDestroyWindow(windowId);
-				// exit(0);
+				player1Wins = true;
+				player2Wins = false;
+				// draw the ship
+				for (int i = 0; i < manager->boids.size(); i++) {
+					Boid b = manager->boids[i];
+					glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.8f, 1.0f);
+					drawShip(b.position, glm::normalize(b.velocity), color);
+				}
 			}
+				
+			// activate our shader program
+			glUseProgram(programId);
+
+			// turn on depth buffering
+			glEnable(GL_DEPTH_TEST);
+
 			for (int i = 0; i < vec1.size(); i++) {
 				drawCube(vec1[i], glm::vec4(0.0f, 0.0f, 0.8f, 1.0f));
 			}
@@ -631,13 +619,13 @@ static void render(void) {
 		{
 			//checks if jump is initiated ~ player 2
 			if (jumpTime2 >= 0.005 && jumpTime2 <= 5.000) {
-				jumpTime2 += 0.005;		//increment our jumptime by a small value to display a more smother jump per each update we make
+				jumpTime2 += 0.040;		//increment our jumptime by a small value to display a more smother jump per each update we make
 			}
 
 			//check if player 2 hit the hurdle..
 			double runDistance2 = (time / 5.00) + run2;
 			hit2 = false;
-			// std::cout << "runTime1: " << runDistance2 << std::endl;
+			
 			if (runDistance2 >= 57.0 && runDistance2 <= 63.0 || runDistance2 >= 117.0 && runDistance2 <= 123.0) {
 				//check if the height at this hurdle is greater than 12.0f( the height of our hurdle)
 				if ((jumpTime2 <= 1.5 && jumpTime2 >= 0.0) && (runDistance2 >= 57.0 && runDistance2 <= 63.0 || runDistance2 >= 117.0 && runDistance2 <= 123.0)) {	//cleared the hurdle
@@ -645,32 +633,47 @@ static void render(void) {
 					hit2 = true;
 				}
 			}
-
+			if (isFinished) {
+				runDistance2 = (lastTime / 5.00) + run2;
+				finishCounter += 0.010;
+				if (finishCounter >= 5.00) {
+					if (player1Wins == true) {
+						std::cout << "PLAYER 1 WINS!" << std::endl;
+					}
+					if (player2Wins == true) {
+						std::cout << "PLAYER 2 WINS!" << std::endl;
+					}
+					glutDestroyWindow(windowId);
+					exit(0);
+				}
+			}
+			else {
+				lastTime = time;
+			}
+			
 			Person person2(time, yRotationSpeed, yRotation, t, (float)runDistance2, -8.00, jumpTime2);
 			std::vector<glm::mat4> vec2 = person2.getBodyVector();
+			
 			if (person2.isFinished() == true) {
 				isFinished = true;
-        {
-          // activate our shader program
-          glUseProgram(programId);
+				player2Wins = true;
+				player1Wins = false;
 
-          // turn on depth buffering
-          glEnable(GL_DEPTH_TEST);
+				// draw the ship
+				for (int i = 0; i < manager->boids.size(); i++) {
+					Boid b = manager->boids[i];
+					glm::vec4 color = glm::vec4(0.8f, 0.0f, 0.0f, 1.0f);
+					drawShip(b.position, glm::normalize(b.velocity), color);
+				}
 
-          // draw the ship
-          for (int i =0;  i < manager->boids.size(); i++){
-            Boid b = manager->boids[i];
-            glm::vec4 color = glm::vec4(0.8f,0.0f,0.0f,1.0f);
-            drawShip(b.position, glm::normalize(b.velocity), color);
-          }
-
-          // disable the attribute array
-          // glDisableVertexAttribArray(positionBufferId);
-        }
-				// std::cout << "RED Player 2 wins!" << std::endl;
-				// glutDestroyWindow(windowId);
-				// exit(0);
 			}
+        
+			// activate our shader program
+			glUseProgram(programId);
+
+			// turn on depth buffering
+			glEnable(GL_DEPTH_TEST);
+
 			for (int i = 0; i < vec2.size(); i++) {
 				drawCube(vec2[i], glm::vec4(0.8f, 0.0f, 0.0f, 1.0f));
 			}
@@ -716,11 +719,8 @@ static void render(void) {
 			for (int i = 0; i < p2hurd2.size(); i++) {
 				drawCube(p2hurd2[i], glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
 			}
-
 		}
-
 	}
-  
   // make the draw buffer to display buffer (i.e. display what we have drawn)
   glutSwapBuffers();
 }
@@ -730,12 +730,6 @@ static void reshape(int w, int h) {
 
    width = w;
    height = h;
-}
-
-static void drag(int x, int y) {
-}
-
-static void mouse(int button, int state, int x, int y) {
 }
 
 static void keyboard(unsigned char key, int x, int y) {
@@ -779,8 +773,6 @@ int main(int argc, char** argv) {
   glutIdleFunc(&update);
   glutDisplayFunc(&render);
   glutReshapeFunc(&reshape);
-  glutMotionFunc(&drag);
-  glutMouseFunc(&mouse);
   glutKeyboardFunc(&keyboard);
 
   glewInit();
@@ -823,20 +815,19 @@ int main(int argc, char** argv) {
   skyboxProgram.loadShaders("shaders/skybox_vertex.glsl", "shaders/skybox_fragment.glsl");
   skyboxProgramId = skyboxProgram.getProgramId();
 
-
   //display out for introduction and controls
   std::cout << std::endl << "Welcome to the Brick Olympics!" << std::endl << std::endl;
   std::cout << "This is a test of might between Player 1 (RED) and Player 2 (BLUE)" << std::endl;
   std::cout << "Rapidly press the run button to reach the finishline!" << std::endl;
   std::cout << "But watch out! There are hurdles which slow you down. Jump over them!" << std::endl << std::endl;
 
-  std::cout << "Controls Player 1 (RED):" << std::endl;
-  std::cout << "\tq - runs" << std::endl;
-  std::cout << "\tw - jump" << std::endl;
-
-  std::cout << "Controls Player 2 (BLUE):" << std::endl;
+  std::cout << "Controls Player 1 (Blue):" << std::endl;
   std::cout << "\to - runs" << std::endl;
   std::cout << "\tp - jump" << std::endl;
+
+  std::cout << "Controls Player 2 (Red):" << std::endl;
+  std::cout << "\tq - runs" << std::endl;
+  std::cout << "\tw - jump" << std::endl;
 
   glutMainLoop();
 

@@ -20,9 +20,7 @@
 #pragma once
 
 class Person {
-private:
-
-
+	
 public:
 
 	Person(float thisTime, float rotSpeed, float yRot, float count, float step, float start, double jumpTime);
